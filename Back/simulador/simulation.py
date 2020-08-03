@@ -12,7 +12,7 @@ class Simulation:
     """ Atributos: "engine", "graph", "table", contiene tambien un
     constructor y los metodos "setModel()", "init()", "run()" """
 
-    def __init__(self, filename, maxtime):
+    def __init__(self,filename, maxtime):
         """ construye su motor de simulacion, la grafica de comunicaciones y
         la tabla de procesos """
         self.engine = Simulator(maxtime)

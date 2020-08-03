@@ -8,6 +8,13 @@ from .daemons import *
 from .simulador import Model, Simulation
 
 
+import numpy as np
+# import autopath
+# autopath.add_toplevel_to_syspath()
+
+# from Prueba import pruebainsert
+
+
 # from model import Model
 
 # from simulation import Simulation
@@ -314,7 +321,6 @@ def waitResult(self):
 # skipcq: PYL-W0613
 def report(self, results):
     print("Reporto los resultados ")
-
     pass
     # print("                 El resultado de la operacion fue: " + str(self.result))
 
@@ -338,11 +344,13 @@ def confirmStorage(id_file, id_copy, result):
 
 # construye una instancia de la clase Simulation recibiendo como parametros el nombre del
 # archivo que codifica la lista de adyacencias de la grafica y el tiempo max. de simulacion
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Please supply a file name")
-        raise SystemExit(1)
-    experiment = Simulation(sys.argv[1], 500)
+# if __name__ == "__main__":
+def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
+    # if len(sys.argv) != 2:
+    #     print("Please supply a file name")
+    #     raise SystemExit(1)
+
+    experiment = Simulation('topo.txt, 500)
 
     # asocia un pareja proceso/modelo con cada nodo de la grafica
     for i in range(1, len(experiment.graph) + 1):
@@ -351,16 +359,39 @@ if __name__ == "__main__":
 
     # inserta un evento semilla en la agenda y arranca
 
-    seed = Mensaje("DESPIERTA", "", 0.0, 1, 1, None,
-                   None, None, None, None, None, 0)
+    seed = Mensaje(
+            "DESPIERTA", # Name
+            "",          # operacion
+            0.0,         # Time
+            1,           # Target
+            1,           # Source
+            None,        # elemento_interno_objetivo
+            None,        # elemento_interno_remitente 
+            None,        # elem_int_obj_id
+            None,        # elem_int_rem_id 
+            None,        # parametros 
+            None,        # prioridad
+            None,        # nodo_objetivo
+            lista_fallo,        # lista_fallo
+            tiempo_fallo,        # tiempo_fallo
+            tiempo_recuperacion,        # tiempo_recuperacion
+            0            # Port=0
+                )
+    print(f"Desde storage funciona!!! {lista_fallo}, {tiempo_fallo}, {tiempo_recuperacion}")
+
 
     experiment.init(seed)
 
     experiment.run()
+    
+    
+    return [1,2,3,"funciona"]
+    
 
 
 
 def prueba():
     lista = [1,2,3,4,'funciona']
     print(lista)
+    # print(pruebainsert.conexion())
     return lista
