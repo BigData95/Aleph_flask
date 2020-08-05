@@ -1,0 +1,12 @@
+
+
+{% macro render_list(lista)%}
+    <div class="col">
+        {% for elemento in lista%}
+            <li>
+                {{elemento}}
+            </li>
+        {% endfor %}
+    </div>
+
+{%endmacro%}

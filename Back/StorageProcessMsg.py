@@ -8,7 +8,6 @@ from .daemons import *
 from .simulador import Model, Simulation
 
 
-import numpy as np
 # import autopath
 # autopath.add_toplevel_to_syspath()
 
@@ -342,15 +341,16 @@ def confirmStorage(id_file, id_copy, result):
 # "main()"
 # ----------------------------------------------------------------------------------------
 
-# construye una instancia de la clase Simulation recibiendo como parametros el nombre del
-# archivo que codifica la lista de adyacencias de la grafica y el tiempo max. de simulacion
-# if __name__ == "__main__":
+
+
 def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
     # if len(sys.argv) != 2:
     #     print("Please supply a file name")
     #     raise SystemExit(1)
-
-    experiment = Simulation('topo.txt, 500)
+    import pathlib
+    fn = pathlib.Path(__file__).parent / 'topo.txt'
+    
+    experiment = Simulation(fn, 500)
 
     # asocia un pareja proceso/modelo con cada nodo de la grafica
     for i in range(1, len(experiment.graph) + 1):
@@ -385,7 +385,8 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
     experiment.run()
     
     
-    return [1,2,3,"funciona"]
+    return [["columna 1",2,3],["Columna2",4,5], ["Columna 3", 6, 7] ]
+
     
 
 

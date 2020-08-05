@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% import 'macros.html' as macros%}
+
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+
+{% block title %}
+{{ super() }}
+Bienvenido
+{%endblock%}
+
+
+{% block content%}
+
+<div class="container">
+    {{ wtf.quick_form(fallo_form)}}
+</div>
+
+
+<div class="container">
+    <div class="row align-items-center">
+        {% for list in resultados%}
+        <div class="col">
+            {% for elemento in list%}
+            <li style="list-style: none;">
+                {{elemento}}
+            </li>
+            {% endfor%}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<!-- 
+<div class="container">
+    <div class="row align-items-center">
+        {% for lista in resultados %}
+        {{macros.render_list(lista)}}
+        {% endfor %}
+    </div>
+</div> -->
+
+
+
+<!-- {% for resultado in resultados %}
+        <li>{{ resultado }}</li>
+    {% endfor %} -->
+
+
+
+
+{%endblock%}
