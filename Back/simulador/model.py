@@ -8,14 +8,14 @@ para programar una aplicacion, i.e. un algoritmo concreto """
 from abc import ABCMeta, abstractmethod
 
 
-class Model:
+class Model(metaclass=ABCMeta):
     """ Atributos: "clock", "process", "neighbors", "id",
     contiene tambien un constructor y los metodos "setProcess()",
     "transmit()", "init()" y "receive()", estos dos ultimos son
     metodos abstractos que deben implementarse en la aplicacion """
 
-    __metaclass__ = ABCMeta
-
+    # __metaclass__ = ABCMeta
+    @abstractmethod
     def __init__(self):
         """ define el valor inicial de su reloj """
         self.clock = 0.0
@@ -36,7 +36,7 @@ class Model:
         """ invoca el metodo de transmision de su entidad activa (proceso) """
         self.process.transmit(event)
 
-    @abstractmethod
+    
     def init(self):
         """ Que se inicializa? eso se define en la aplicacion """
         pass

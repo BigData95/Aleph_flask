@@ -1,12 +1,26 @@
-
-
 {% macro render_list(lista)%}
-    <div class="col">
-        {% for elemento in lista%}
-            <li>
-                {{elemento}}
-            </li>
-        {% endfor %}
-    </div>
+<div class="col">
+    {% for elemento in lista%}
+    <li>
+        {{elemento}}
+    </li>
+    {% endfor %}
+</div>
 
 {%endmacro%}
+
+
+
+{% macro render_field(field) %}
+    {% if field.id != 'submit'%}
+        <th>{{ field.label }}
+    {% endif %}
+    <dd>{{field(**kwargs)|safe }} </dd>
+{% if field.errors %}
+<ul>
+    {% for error in field.erros %}
+    <li> {{ error }} </li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endmacro%}

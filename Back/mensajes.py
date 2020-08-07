@@ -139,14 +139,44 @@ def mensaje(self,
 
 def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_id, tipo_daemon):
     if tipo_daemon == 1:
-        mensaje(self, "EXECUTE", self.id, source, parametros, operacion,
-                "t1daemon", "qmanager", target_nodo, prioridad, daemon_id)
+        mensaje(self,
+                "EXECUTE",
+                self.id,
+                source,
+                parametros,
+                operacion,
+                "t1daemon",
+                "qmanager",
+                target_nodo,
+                prioridad,
+                daemon_id
+                )
     if tipo_daemon == 2:
-        mensaje(self, "EXECUTE", self.id, source, parametros, operacion,
-                "t2daemon", "qmanager", target_nodo, prioridad, daemon_id)
+        mensaje(self,
+                "EXECUTE",
+                self.id,
+                source,
+                parametros,
+                operacion,
+                "t2daemon",
+                "qmanager",
+                target_nodo,
+                prioridad,
+                daemon_id
+                )
     if tipo_daemon == 3:
-        mensaje(self, "EXECUTE", self.id, source, parametros, operacion,
-                "t3daemon", "qmanager", target_nodo, prioridad, daemon_id)
+        mensaje(self,
+                "EXECUTE",
+                self.id,
+                source,
+                parametros,
+                operacion,
+                "t3daemon",
+                "qmanager",
+                target_nodo,
+                prioridad,
+                daemon_id
+                )
 
 
 def startTimer(self, internal_target, internal_source, timer_value=1):
@@ -188,38 +218,86 @@ def startTimerClone(self, timer_value, tipo_daemon, clone_id, daemon_id):
 # Manda T1 a nodo target
 def invokeTask(self, target, operacion, parametros, daemon_id):
     if operacion == "STORE":
-        mensaje(self, "STORE", target, self.id, parametros,
-                operacion, "buffer", "t1daemon", nodo_objetivo=target, elem_int_rem_id=daemon_id)
+        mensaje(self,
+                "STORE",
+                target,
+                self.id,
+                parametros,
+                operacion,
+                "buffer",
+                "t1daemon",
+                nodo_objetivo=target,
+                elem_int_rem_id=daemon_id
+                )
         print("Soy T1 y mando a ", target)
     if operacion == "ELIMINATECOPY":  # Manda al proxy
         pass
 
 
 # Siempre es para el qmanager
-def insert(self, daemon, source, target, parametros, prioridad, operacion,
-           elemento_interno_remitente="buffer", buffer_id=None,
-           nodo_objetivo=None, timer=None, taskReplica=None, source_daemon=None, tipo_daemon=None):
+def insert(self, 
+        daemon, 
+        source, 
+        target, 
+        parametros, 
+        prioridad, 
+        operacion,
+        elemento_interno_remitente="buffer", 
+        buffer_id=None,
+        nodo_objetivo=None, 
+        timer=None, 
+        taskReplica=None, 
+        source_daemon=None, 
+        tipo_daemon=None):
     # !TODO: Verificar antipatron, targetDeamon = daemon?, verificar uso de timer y taskReplica
     if daemon == "T1DaemonID":
-        print("Hago insert")
-        mensaje(self, daemon, target, source, parametros, operacion,
-                "qmanager", elemento_interno_remitente, nodo_objetivo, prioridad)
+        mensaje(self, 
+                daemon, 
+                target, 
+                source, 
+                parametros, 
+                operacion,
+                "qmanager", 
+                elemento_interno_remitente, 
+                nodo_objetivo, prioridad
+                )
     if daemon == "T3DaemonID":
         parametros['timer'] = timer
         parametros['tipo_daemon'] = tipo_daemon
-        mensaje(self, daemon, target, source, parametros, operacion, "qmanager",
-                elemento_interno_remitente, None, prioridad, source_daemon)
+        mensaje(self, 
+                daemon, 
+                target, 
+                source, 
+                parametros, 
+                operacion, 
+                "qmanager",
+                elemento_interno_remitente,
+                None, 
+                prioridad, 
+                source_daemon
+                )
 
 
 def store(self, parametros, target):
     # Viene del cliente
     if len(parametros) < 3:
-        mensaje(self, "STORE", target, self.id, parametros,
-                elemento_interno_objetivo="proxy")
+        mensaje(self, 
+                "STORE", 
+                target, 
+                self.id, 
+                parametros,
+                elemento_interno_objetivo="proxy"
+                )
     # Viene del Proxy
     else:
-        mensaje(self, "STORE", target, self.id, parametros,
-                elemento_interno_objetivo="buffer", elemento_interno_remitente="proxy")
+        mensaje(self,
+                "STORE",
+                target,
+                self.id,
+                parametros,
+                elemento_interno_objetivo="buffer",
+                elemento_interno_remitente="proxy"
+                )
 
 
 # TODO:Tiene que ser para todos los daemons, no solo t1daemon
@@ -244,8 +322,26 @@ def mensajeDaemon(self, name, daemon_id, tipo_daemon):
 # TODO: Esta escrtio para t1Daemon, quiza se deba tomar en cuenta los demas
 def report(self, result, daemon_id, parameters, prioridad=None, operacion=None, nodo_objetivo=None):
     if result == "FAILURE":
-        mensaje(self, "REPORT", self.id, self.id, parameters, operacion, "buffer", "t1daemon",
-                nodo_objetivo=nodo_objetivo, prioridad=prioridad, elem_int_rem_id=daemon_id)
+        mensaje(self, 
+                "REPORT", 
+                self.id, 
+                self.id, 
+                parameters, 
+                operacion, 
+                "buffer", 
+                "t1daemon",
+                nodo_objetivo=nodo_objetivo,
+                prioridad=prioridad, 
+                elem_int_rem_id=daemon_id
+                )
     else:  # resutl = SUCESS
-        mensaje(self, "REPORT", self.id, self.id, parameters, operacion, "buffer", "t1daemon",
-                elem_int_rem_id=daemon_id)
+        mensaje(self,
+                "REPORT",
+                self.id,
+                self.id,
+                parameters,
+                operacion,
+                "buffer",
+                "t1daemon",
+                elem_int_rem_id=daemon_id
+                )

@@ -1,8 +1,5 @@
 {% extends 'base.html' %}
-
 {% import 'macros.html' as macros%}
-
-{% import 'bootstrap/wtf.html' as wtf %}
 
 
 
@@ -14,9 +11,29 @@ Bienvenido
 
 {% block content%}
 
-<div class="container">
-    {{ wtf.quick_form(fallo_form)}}
-</div>
+<section class="min-vh-50">
+    <div class="container">
+        <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10 mx-auto form p-4">
+            <form name="sentMessegae" method="POST">
+                {{ fallo_form.hidden_tag() }}
+                {% for field in fallo_form 
+                    if field.widget.input_type != 'hidden'%}
+                        <div class="form-group">
+                            {% if field.id != 'limpiar'%}
+                                {{ macros.render_field(field, class="form-control" ) }}
+                            {% else %}
+                                {{ macros.render_field(field)}}
+                            {% endif %}
+                            <p class="help-block text-danger"></p>
+                        </div>
+                {% endfor%}
+                
+            </form>
+        </div>
+    </div>
+</section>
+
+
 
 
 <div class="container">
@@ -32,20 +49,6 @@ Bienvenido
         {% endfor %}
     </div>
 </div>
-<!-- 
-<div class="container">
-    <div class="row align-items-center">
-        {% for lista in resultados %}
-        {{macros.render_list(lista)}}
-        {% endfor %}
-    </div>
-</div> -->
-
-
-
-<!-- {% for resultado in resultados %}
-        <li>{{ resultado }}</li>
-    {% endfor %} -->
 
 
 

@@ -50,8 +50,11 @@ class T1Daemon(Daemon):
         self.__timer_state = self.__parametros['timer_state']
         # self.__timer_state = self.__parametros.get("timer_state", 0)  # Si es la segunda vez que viene
         print("Soy t1Class y mando invoketask")
-        parametros_envio = {'file': self.__parametros['file'], 'id_file': self.__parametros['id_file'],
-                            'id_copy': self.__parametros['id_copy']}
+        parametros_envio = {
+                        'file': self.__parametros['file'], 
+                        'id_file': self.__parametros['id_file'],
+                        'id_copy': self.__parametros['id_copy']
+                        }
         invokeTask(nodo_info, self.__nodo_objetivo, self.__operacion, parametros_envio, self.daemon_id)
         startTimer(nodo_info, self.daemon_id, self.daemon_id)
         print("Soy t1Class y mando timer")
@@ -69,14 +72,27 @@ class T1Daemon(Daemon):
             if self.__timer_state < T1_TIMER_STATE:
                 self.__parametros["timer_state"] = self.__timer_state + 1
                 print("Hago insert porque no recibi repuesta")
-                insert(nodo_info, "T1DaemonID", nodo_info.id, nodo_info.id, self.__parametros,
-                       self.__prioridad, self.__operacion, self.__nodo_objetivo)
+                insert(nodo_info, 
+                    "T1DaemonID", 
+                    nodo_info.id, 
+                    nodo_info.id, 
+                    self.__parametros,
+                    self.__prioridad, 
+                    self.__operacion, 
+                    self.__nodo_objetivo
+                    )
             else:
                 print("Debemos reportar la falla")
                 self.__parametros["reported"] += 1
                 print("PARAMETROS QUE ENVIO:", self.__parametros)
-                report(nodo_info, "FAILURE", self.daemon_id, self.__parametros,
-                       self.__prioridad, self.__operacion, self.__nodo_objetivo)
+                report(nodo_info, 
+                    "FAILURE", 
+                    self.daemon_id, 
+                    self.__parametros,
+                    self.__prioridad, 
+                    self.__operacion, 
+                    self.__nodo_objetivo
+                    )
             # TODO: NO OLVIDAR CAMBIAR RESULT A FALSE
         # Aviso que ya estoy disponible
         self.__status = "FREE"
