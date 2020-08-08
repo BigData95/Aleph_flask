@@ -145,10 +145,10 @@ def Cliente(self):
 
 
 def Proxy(self, event):
-    add_result(self, 'all', "##Proxy##")
+    # add_result(self, 'all', "##Proxy##")
     if event.name == "STORE":
         """ Para referencia visual consultar Storage process, first phase (1) Client App Initiates """
-        add_result(self, 'all', f'Proxy de: {self.id}, uso buffer')
+        # add_result(self, 'all', f'Proxy de: {self.id}, uso buffer')
         file_, file_name = event.parametros
         new_name = generateNewName(file_name)
         print(new_name)
@@ -159,11 +159,12 @@ def Proxy(self, event):
 
 
 def buffer(self, event):
-    add_result(self, 'all', "##Buffer##")
+    # add_result(self, 'all', "##Buffer##")
     if event.source_element == "proxy":  # '''To ask: or elseWhere , puede estar demas'''
         if event.name == "STORE":
             file_, new_name, num_copy = event.parametros  # File,FileName, nuCopy
             for copia in range(num_copy):  # Para cada copia
+                # add_result(self, copia, "Oracle Invocado")
                 id_nodo = invokeOracle()
                 add_result(self,
                         copia,
@@ -193,7 +194,7 @@ def buffer(self, event):
     if event.source_element == "t1daemon":
         if event.name == "REPORT":
             if event.operacion == "SUCESS" or event.parametros["reported"] >= MAX_FAILURES:
-                add_result(self, event.parametros["id_copy"] , f"Operacion exito o fallo {event.name}")
+                # add_result(self, event.parametros["id_copy"] , f"Operacion exito o fallo {event.name}")
                 # print("La operacion fue un exito!!! o reportamos el fallo a proxy", event.name)
                 confirmStorage(event.parametros["id_file"], event.parametros["id_copy"], event.name)
                 update()  # TODO: Update, actualiza la lista del buffer segun IDFILE e idCopy
@@ -202,7 +203,7 @@ def buffer(self, event):
                 # en event.operacion viene la opericon que se intento en el nodo, no "FAILURE", si fue SUCESS en
                 # operacion se pone SUCESS en lugar de la operacion que se intento
 
-                add_result(self, 'all', f"{event.parametros}")
+                # add_result(self, 'all', f"{event.parametros}")
                 print("La operacion fallo, lo intentamos de nuevo")
                 insert(self,
                         "T1DaemonId",
@@ -332,7 +333,7 @@ def t3_Daemon(self, event):
 
 
 def invokeOracle():
-    print("Oracle invocado")
+    # print("Oracle invocado")
     # ! Numeros magicos!!!!!
     # TODO:Segun topo.txt del nodo 5 al 8 son nodos encargados de almacenar
     return random.randint(5, 8)
@@ -365,18 +366,19 @@ def confirmStorage(id_file, id_copy, result):
     pass
 
 
-RESULTADO =[ ['Copy 1'], ['Copy 2'], ['Copy 3'] ]
+resultado =[ ['Copy 1'], ['Copy 2'], ['Copy 3'] ]
 
 def add_result(self, id, contenido):
+    global resultado
     if id == 'all':
-        for lista in range(len(RESULTADO)):
-            if contenido in RESULTADO[lista]:
+        for elemento in range(len(resultado)):
+            if contenido in resultado[elemento]:
                 break
             else:
-                RESULTADO[lista].append(f'[{self.clock}]: {contenido}')
+                resultado[elemento].append(f'[{self.clock}]: {contenido}')
             
     else:    
-        RESULTADO[id].append(f'[{self.clock}]: {contenido}')
+        resultado[id].append(f'[{self.clock}]: {contenido}')
     
     
     print(f'[{self.clock}]: {contenido}')
@@ -431,8 +433,4 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
     experiment.run()
     
     
-    return RESULTADO
-
-    
-
-
+    return resultado
