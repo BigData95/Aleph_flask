@@ -4,9 +4,12 @@ import sys
 
 from .auxiliar import *
 from .daemons import *
+from .auxiliar import add_result, add_global_result
+from .auxiliar import resultado_ids, general
+from .archivo import Archivo, Copy
+
 
 from .simulador import Model, Simulation
-
 
 # import autopath
 # autopath.add_toplevel_to_syspath()
@@ -48,20 +51,16 @@ PRIORIDAD_MEDIA = 2
 EJECUTA_PRIORIDAD_BAJA = 1
 PRIORIDAD_BAJA = 1
 
-
-T1_DAEMONS = 5    # Numero de dameons tipo 1 
+T1_DAEMONS = 5  # Numero de dameons tipo 1
 T1_MAX_COUNT = 1  # Numero de intentos del timer t1Daemon
 
-T2_DAEMONS = 5    # Numero de daemon tipo 2
+T2_DAEMONS = 5  # Numero de daemon tipo 2
 
-#T3Daemon Solo hay 1 daemon tipo 3
+# T3Daemon Solo hay 1 daemon tipo 3
 T3_DAEMONS = 1
 
-#Numero de buffers
+# Numero de buffers
 BUFFERS = 5
-
-
-
 
 
 class Daemons(Model):
@@ -76,28 +75,26 @@ class Daemons(Model):
 
         self.t3_daemons = list()
         [self.t3_daemons.append(T3Daemon(daemon_id)) for daemon_id in range(T3_DAEMONS)]
-        
+
         self.buffer = list()
         [self.buffer.append(buffer_id) for buffer_id in range(BUFFERS)]
-        
+
         self.target_status = "ok"
         self.wait_status = False
         self.politica = "HIGH"
         self.status_daemons = [True, True, True]
 
         self.id_nodos = []  # Guarda el id del nodo que hizo la operacion de store de forma exitosa
-        
+
         # QManager
-        self.queue_high = [[] for __ in range(0)] 
+        self.queue_high = [[] for __ in range(0)]
         self.queue_medium = [[] for __ in range(0)]
-        self.queue_low = [[] for __ in range(0)]  
+        self.queue_low = [[] for __ in range(0)]
 
         # Contador para politicas de servicio
-        self.cont_prioridad_alta = 0 
+        self.cont_prioridad_alta = 0
         self.cont_prioridad_media = 0
-        self.cont_prioridad_baja = 0  
-
-
+        self.cont_prioridad_baja = 0
 
     def receive(self, event):
         """ Funciona como interfaz, manda los mensajes a los elementos del sistema que corresponda. """
@@ -118,42 +115,45 @@ class Daemons(Model):
             t1_Daemon(self, event)
 
         if event.target_element == "t2daemon":
-            t2_Daemon(self,event)
-        
+            t2_Daemon(self, event)
+
         if event.target_element == "t3daemon":
             t3_Daemon(self, event)
 
 
-
-# TODO: Hacer de los clientes una clase para poder simular varios
 def Cliente(self):
     """
 
     """
     print("Que tipo de accion quieres realizar \n1)Store\n2)Retrieve\n")
-    accion = 1 
+    accion = 1
     # Por ahora solo hace Store
     if accion == 1:
         # Ingresa archivo, lee nombre
         destino = random.randint(2, 4)  # ID del nodo
-        
+
         # Los parametros vienen del cliente
         parametros = ["file", "file_name"]
-        
-        store(self, parametros, destino)
-        add_result(self, 'all', f'Mando Store al Proxy:{destino}')
+
+        store(self, destino, parametros=parametros)
+        add_global_result(self, f'Mando Store al Proxy:{destino}')
 
 
 def Proxy(self, event):
+    print('###Proxy#####')
     # add_result(self, 'all', "##Proxy##")
     if event.name == "STORE":
         """ Para referencia visual consultar Storage process, first phase (1) Client App Initiates """
         # add_result(self, 'all', f'Proxy de: {self.id}, uso buffer')
+        print(f"{self.id}, hago uso del buffer")
         file_, file_name = event.parametros
         new_name = generateNewName(file_name)
         print(new_name)
-        parametros = [file_, new_name, NUM_COPIES]  # FileID es NewName
-        store(self, parametros, self.id)
+        
+        archivo = Archivo(file_, file_name, new_name, NUM_COPIES)
+        
+        # parametros = [file_, new_name, NUM_COPIES]  # FileID es NewName
+        store(self, self.id, archivo=archivo)  #!Checar que pdo
 
     'To ask: Proxy or elsewhere,como lo decidimos '
 
@@ -162,32 +162,35 @@ def buffer(self, event):
     # add_result(self, 'all', "##Buffer##")
     if event.source_element == "proxy":  # '''To ask: or elseWhere , puede estar demas'''
         if event.name == "STORE":
-            file_, new_name, num_copy = event.parametros  # File,FileName, nuCopy
-            for copia in range(num_copy):  # Para cada copia
+            # file_, new_name, num_copy = event.parametros  # File,FileName, nuCopy
+            # archivo = event.parametros
+            for copias in range(event.archivo.num_copies ):  # Para cada copia
                 # add_result(self, copia, "Oracle Invocado")
                 id_nodo = invokeOracle()
-                add_result(self,
-                        copia,
-                        f"Id del nodo regresado por oraculo: {id_nodo}")
+                # add_result(self,
+                #            copia,
+                #            f"Id del nodo regresado por oraculo: {id_nodo}")
                 print("El id del nodo regresado por el Oraculo, es : " + str(id_nodo))
                 # initiate(result = FAILURE_SUSPICION, reported=0)
                 # reported = 0
                 # NewName es unico para cada File
-                parametros = {
-                            'file': file_, 
-                            'id_file': new_name,
-                            'id_copy': copia, 
-                            'reported': 0
-                            }
-                insert(self, 
-                    "T1DaemonID", 
-                    self.id, 
-                    self.id, 
-                    parametros,
-                    "HIGH", 
-                    "STORE", 
-                    nodo_objetivo=id_nodo
-                    )
+                copia = Copy(event.archivo.new_name, copias, id_nodo, reported=0)
+                # parametros = {
+                #     'file': file_,
+                #     'id_file': new_name,
+                #     'id_copy': copia,
+                #     'reported': 0
+                # }
+                # parametros = { 'copia': copia}
+                insert(self,
+                       "T1DaemonID",
+                       self.id,
+                       self.id,
+                       "HIGH",
+                       "STORE",
+                       archivo=copia,
+                       nodo_objetivo=id_nodo
+                       )
                 # El insert es para su qmanager
 
     # TODO: QUIZA SE PUEDE GENERALIZAR REPORT PARA TODOS LOS TIPOS DE DEMONIOS
@@ -206,35 +209,38 @@ def buffer(self, event):
                 # add_result(self, 'all', f"{event.parametros}")
                 print("La operacion fallo, lo intentamos de nuevo")
                 insert(self,
-                        "T1DaemonId",
-                        self.id,
-                        self.id,
-                        event.parametros,
-                        event.prioridad,
-                        event.operacion, 
-                        event.nodo_objetivo
-                        )
+                       "T1DaemonId",
+                       self.id,
+                       self.id,
+                       event.parametros,
+                       event.prioridad,
+                       event.operacion,
+                       event.nodo_objetivo
+                       )
 
         if event.name == "STORE":
             # Viene de invokeTask de T1Daemon, le pide hacer esta operacion porque fue elegido por el oraculo.
             print("tengo que hacer un store! Mando mensaje de confirmacion a t1 daemon, o no", event.source_element_id)
-            if event.parametros["id_copy"] > 1:
+            # if event.parametros["id_copy"] > 1:
+            copia = event.parametros
+            print(copia.id_copy)
+            if copia.id_copy > 1:
                 # Creo clones
                 print("Funiona!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!?")
-                insert(self, 
-                    "T3DaemonID", 
-                    self.id, 
-                    self.id, 
-                    event.parametros, 
-                    "HIGH", 
-                    "STORE",
-                    buffer_id=self.buffer[0], 
-                    timer=10, 
-                    source_daemon=event.source_element_id,
-                    tipo_daemon="T1DaemonID"
-                    )
+                insert(self,
+                       "T3DaemonID",
+                       self.id,
+                       self.id,
+                       event.parametros,
+                       "HIGH",
+                       "STORE",
+                       buffer_id=self.buffer[0],
+                       timer=10,
+                       source_daemon=event.source_element_id,
+                       tipo_daemon="T1DaemonID"
+                       )
             else:
-                print("Vamos a mandar confirStorage, soy el original",event.parametros["id_copy"])
+                print("Vamos a mandar confirStorage, soy el original", copia.id_copy)
 
             resultados = True  # ! Variable de prueba, esto lo deberia de regresar un proceso
             if resultados:
@@ -246,14 +252,21 @@ def qManager(self, event):  # QManager
     # Cualquier cosa que le llega, la encola segun su prioridad
     print("Evento:", event.name)
     print("Operacion", event.operacion)
-    
+
     if event.name == "T1DaemonID":
         if event.operacion == "STORE":
             # Ver diagrada Sotage process, first phase, le sigue Queue Manager & type 1
             # execution daemon with delayed answer
             print("Para el t1 DAEMON")
             print("La prioridad es :", event.prioridad)
-            elementos = [1, event.target, event.source, event.operacion, event.parametros]
+            elementos = {
+                'tipo_daemon': 1,
+                'target': event.target,
+                'source': event.source,
+                'copia': event.archivo
+            } 
+            # [1, event.target, event.source, event.operacion, event.archivo] #!Hacer diccionario para mejor acceso
+
             encolar(self, elementos, event.prioridad)
             print("Deberia encolar!!!!!")
 
@@ -272,7 +285,13 @@ def qManager(self, event):  # QManager
     if event.name == "T3DaemonID":
         if event.operacion == "STORE":
             print("Para el t3 Daemon")
-            elementos = [3, event.target, event.source, event.operacion, event.parametros]
+            elementos = {
+                'tipo_daemon': 1,
+                'target': event.target,
+                'source': event.source,
+                'copia': event.archivo
+            } 
+            # elementos = [3, event.target, event.source, event.operacion, event.parametros]
             encolar(self, elementos, event.prioridad)
             print("Debe encolar")
 
@@ -329,7 +348,6 @@ def t3_Daemon(self, event):
     if event.name == "TIMER":
         # El parametro event.nodo_objetivo contiene el clone_id
         self.t3_daemons[event.target_element_id].timer(self, event.nodo_objetivo)
-        
 
 
 def invokeOracle():
@@ -339,7 +357,6 @@ def invokeOracle():
     return random.randint(5, 8)
 
 
-# skipcq: PYL-W0613
 def generateNewName(file_name):
     return id(file_name)
 
@@ -366,29 +383,9 @@ def confirmStorage(id_file, id_copy, result):
     pass
 
 
-resultado =[ ['Copy 1'], ['Copy 2'], ['Copy 3'] ]
-
-def add_result(self, id, contenido):
-    global resultado
-    if id == 'all':
-        for elemento in range(len(resultado)):
-            if contenido in resultado[elemento]:
-                break
-            else:
-                resultado[elemento].append(f'[{self.clock}]: {contenido}')
-            
-    else:    
-        resultado[id].append(f'[{self.clock}]: {contenido}')
-    
-    
-    print(f'[{self.clock}]: {contenido}')
-    
-
-
 # ----------------------------------------------------------------------------------------
 # "main()"
 # ----------------------------------------------------------------------------------------
-
 
 
 def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
@@ -397,7 +394,7 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
     #     raise SystemExit(1)
     import pathlib
     fn = pathlib.Path(__file__).parent / 'topo.txt'
-    
+
     experiment = Simulation(fn, 500)
 
     # asocia un pareja proceso/modelo con cada nodo de la grafica
@@ -408,29 +405,28 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
     # inserta un evento semilla en la agenda y arranca
 
     seed = Mensaje(
-            "DESPIERTA", # Name
-            "",          # operacion
-            0.0,         # Time
-            1,           # Target
-            1,           # Source
-            None,        # elemento_interno_objetivo
-            None,        # elemento_interno_remitente 
-            None,        # elem_int_obj_id
-            None,        # elem_int_rem_id 
-            None,        # parametros 
-            None,        # prioridad
-            None,        # nodo_objetivo
-            lista_fallo,        # lista_fallo
-            tiempo_fallo,        # tiempo_fallo
-            tiempo_recuperacion,        # tiempo_recuperacion
-            0            # Port=0
-                )
+        "DESPIERTA",  # Name
+        "",  # operacion
+        0.0,  # Time
+        1,  # Target
+        1,  # Source
+        None,  # elemento_interno_objetivo
+        None,  # elemento_interno_remitente
+        None,  # elem_int_obj_id
+        None,  # elem_int_rem_id
+        None,  # parametros
+        None,  # prioridad
+        None,  # nodo_objetivo
+        None,  # Archivo
+        lista_fallo,  # lista_fallo
+        tiempo_fallo,  # tiempo_fallo
+        tiempo_recuperacion,  # tiempo_recuperacion
+        0  # Port=0
+    )
     print(f"Desde storage funciona!!! {lista_fallo}, {tiempo_fallo}, {tiempo_recuperacion}")
-
 
     experiment.init(seed)
 
     experiment.run()
-    
-    
-    return resultado
+
+    return [general, resultado_ids]

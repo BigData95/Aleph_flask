@@ -23,8 +23,8 @@ def encargoDaemon(self, prioridad, id_daemon, tipo_daemon):
         raise ValueError("La prioridad no se encuentra definida")
 
     print("MANDO EXECUTE AL", id_daemon, "PRIORIDAD:", prioridad)
-    _, target_nodo, source, operacion, parametros = next_task
-    execute(self, target_nodo, source, operacion, parametros, prioridad, id_daemon, tipo_daemon)
+    _, target_nodo, source, operacion, copy = next_task
+    execute(self, target_nodo, source, operacion, copy, prioridad, id_daemon, tipo_daemon)
 
 
 def getIndexPositions(list_elements, element):
@@ -71,7 +71,9 @@ def encolar(self, elementos, prioridad):
         print("Estoy encolado: SOY PRIORIDAD BAJA")
         self.queue_low.append(elementos)
 
+
 import time
+
 
 def daemon_do(self):
     if True in self.status_daemons:
@@ -102,15 +104,16 @@ def daemon_do(self):
                     print("@@No hay nada en la lista de prioirdad baja, cambiamos politica,vamos alta")
                     self.politica = "HIGH"
         else:
-            print("No hay tareas pendientes", self.politica)
-            print(self.queue_high)
+            if not despachado:
+                print("No hay tareas pendientes", self.politica)
+                print(self.queue_high)
     else:
         print("No hay demonios disponibles")
 
 
 def prueba2(self, queue, free_daemons, prioridad):
     for _ in range(len(queue)):
-        tipo_daemon = queue[0][0]
+        tipo_daemon = queue[0]['tipo_daemon']
         if tipo_daemon == 1 and 1 in free_daemons:
             get_free_daemon = freeDaemon(self.t1_daemons)
             if get_free_daemon != -1:
@@ -134,12 +137,12 @@ def prueba2(self, queue, free_daemons, prioridad):
             else:
                 self.status_daemons[1] = False
                 print("Ya no hay demonios tipo 2")
-        elif tipo_daemon == 3 and 3: #in free_daemons:
+        elif tipo_daemon == 3 and 3:  # in free_daemons:
             # El demonio tipo 3 siempre esta disponible
             # todo: Solo deberia de hacer referencia a un demonio tipo 3
-            get_free_daemon = freeDaemon(self.t3_daemons)   # SOlo hay un demonio tipo 3
+            get_free_daemon = freeDaemon(self.t3_daemons)  # SOlo hay un demonio tipo 3
             print("Daemon tipo 3 se le envio el trabajo:", get_free_daemon)
-            encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)        
+            encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)
             # if get_free_daemon != -1:
             #     print("Daemon tipo 3 se le envio el trabajo:", get_free_daemon)
             #     encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)
@@ -155,6 +158,9 @@ def prueba2(self, queue, free_daemons, prioridad):
 
 
 def contPrioridad(self, prioridad):
+    """ Revisa si se tiene que cambiar la polica de priridad
+    basado en los contadores
+    """
     if prioridad == "HIGH" and self.cont_prioridad_alta > PRIORIDAD_ALTA:
         self.cont_prioridad_alta = 0
         print("CAMBIO!!! a medium por politica")
@@ -165,3 +171,29 @@ def contPrioridad(self, prioridad):
     elif prioridad == "LOW" and self.cont_proridad_baja > PRIORIDAD_BAJA:
         self.cont_proridad_baja = 0
         self.politica = "HIGH"
+
+
+resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
+
+
+def add_result(self, id, contenido):
+    global resultado_ids
+    if id == 'all':
+        for elemento in range(len(resultado_ids)):
+            if contenido in resultado_ids[elemento]:
+                break
+            else:
+                resultado_ids[elemento].append(f'[{self.clock}]: {contenido}')
+    else:
+        resultado_ids[id].append(f'[{self.clock}]: {contenido}')
+    print(f'[{self.clock}]: {contenido}')
+
+
+general = []
+
+
+def add_global_result(self, contenido):
+    global general
+    general.append(f"[{self.clock}]: {contenido}")
+    print(f'[{self.clock}]: {contenido}')
+    return general
