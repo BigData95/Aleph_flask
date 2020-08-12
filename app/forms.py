@@ -18,5 +18,5 @@ class FalloForm(FlaskForm):
 
 
 
-class ClearForm(FlaskForm):
-    clear = SubmitField('Limpiar')
+# class ClearForm(FlaskForm):
+#     clear = SubmitField('Limpiar')

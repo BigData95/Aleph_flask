@@ -2,6 +2,13 @@
 from .mensajes import *
 import copy
 
+
+
+"""
+
+"""
+
+
 T1_TIMER_STATE = 3
 
 
@@ -55,7 +62,12 @@ class T1Daemon(Daemon):
                         'id_file': self.__parametros['id_file'],
                         'id_copy': self.__parametros['id_copy']
                         }
-        invokeTask(nodo_info, self.__nodo_objetivo, self.__operacion, parametros_envio, self.daemon_id)
+        invokeTask(nodo_info,
+                    self.__nodo_objetivo, 
+                    self.__operacion, 
+                    parametros_envio, 
+                    self.daemon_id
+                    )
         startTimer(nodo_info, self.daemon_id, self.daemon_id)
         print("Soy t1Class y mando timer")
 
@@ -63,7 +75,7 @@ class T1Daemon(Daemon):
     def timer(self, nodo_info):
         """Utiliza nodo_info para obtener la informacion del nodo donde vive, como el id y el clock """
         if self.result:
-            print("Ya llego la confirmacion, la pandamos SUCESS")
+            print("Ya llego la confirmacion, la mandamos SUCESS")
             print("Estos son los parametros!", self.__parametros)
             self.__parametros["reported"] += 1  # Se hace desde aqui , no desde el buffer
             report(nodo_info, "SUCESS", self.daemon_id, self.__parametros)
@@ -119,8 +131,11 @@ class T3Daemon(Daemon):
         self.__parametros['prioridad'] = event.prioridad
         self.__parametros['nodo_objetivo'] = event.nodo_objetivo
         print(self.__parametros)
-        startTimerClone(nodo_info, event.parametros['timer'], event.parametros['tipo_daemon'],
-                        self.__clon_id, self.daemon_id)
+        startTimerClone(nodo_info, 
+                        event.parametros['timer'],
+                        event.parametros['tipo_daemon'],
+                        self.__clon_id, self.daemon_id
+                        )
         self.__clones.append(self.__clon_id)
         self.__clon_id += 1
 
@@ -128,12 +143,23 @@ class T3Daemon(Daemon):
         print("Timer de T3Daemon")
         if not nodo_id in self.__matar_clon:
             #Para t1Daemon
-            parametros_envio = {'file':self.__parametros['file'],'id_file':self.__parametros['id_file'],
-                                'id_copy':self.__parametros['id_copy'],'reported':0}
+            parametros_envio = {
+                        'file':self.__parametros['file'],
+                        'id_file':self.__parametros['id_file'],
+                        'id_copy':self.__parametros['id_copy'],
+                        'reported':0
+                        }
             print("Mando insert")
-            insert(nodo_info, self.__parametros['tipo_daemon'], nodo_info.id, nodo_info.id,
-                    parametros_envio, self.__parametros['prioridad'],self.__parametros['operacion'],
-                    elemento_interno_remitente="t3Daemon", nodo_objetivo=self.__parametros['nodo_objetivo'])
+            insert(nodo_info, 
+                    self.__parametros['tipo_daemon'],
+                    nodo_info.id,
+                    nodo_info.id,
+                    parametros_envio, 
+                    self.__parametros['prioridad'],
+                    self.__parametros['operacion'],
+                    elemento_interno_remitente="t3Daemon", 
+                    nodo_objetivo=self.__parametros['nodo_objetivo']
+                    )
         else:
             print("Este clon ya se mato, por ordenenes de arriba")
 

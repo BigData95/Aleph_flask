@@ -1,7 +1,11 @@
 from .mensajes import *
+# from .nexo import add_result, add_all
+from .resultados import Globals
 
 """
-Metodos necesarios para el algoritmo, pero que no aparecen en los diagramas
+Metodos necesarios para el algoritmo, pero que no aparecen en los diagramas o
+que se dedican a hacer otra clase de operaciones no relacionadas directamente con 
+
 """
 PRIORIDAD_ALTA = 3
 PRIORIDAD_MEDIA = 3
@@ -71,7 +75,9 @@ def encolar(self, elementos, prioridad):
         print("Estoy encolado: SOY PRIORIDAD BAJA")
         self.queue_low.append(elementos)
 
+
 import time
+
 
 def daemon_do(self):
     if True in self.status_daemons:
@@ -134,12 +140,12 @@ def prueba2(self, queue, free_daemons, prioridad):
             else:
                 self.status_daemons[1] = False
                 print("Ya no hay demonios tipo 2")
-        elif tipo_daemon == 3 and 3: #in free_daemons:
+        elif tipo_daemon == 3 and 3:  # in free_daemons:
             # El demonio tipo 3 siempre esta disponible
             # todo: Solo deberia de hacer referencia a un demonio tipo 3
-            get_free_daemon = freeDaemon(self.t3_daemons)   # SOlo hay un demonio tipo 3
+            get_free_daemon = freeDaemon(self.t3_daemons)  # SOlo hay un demonio tipo 3
             print("Daemon tipo 3 se le envio el trabajo:", get_free_daemon)
-            encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)        
+            encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)
             # if get_free_daemon != -1:
             #     print("Daemon tipo 3 se le envio el trabajo:", get_free_daemon)
             #     encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)
@@ -165,3 +171,26 @@ def contPrioridad(self, prioridad):
     elif prioridad == "LOW" and self.cont_proridad_baja > PRIORIDAD_BAJA:
         self.cont_proridad_baja = 0
         self.politica = "HIGH"
+
+
+# resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
+
+
+def add_result(self, id, contenido):
+    Globals.resultado_ids[id].append(f'[{self.clock}]: {contenido}')
+    # print(f'[{self.clock}]: {contenido}')
+
+
+def add_all(self, contenido):
+    for elemento in range(len(Globals.resultado_ids)):
+        Globals.resultado_ids[elemento].append(
+            f'[{self.clock}]:[ALL]: {contenido}'
+        )
+    # print(f'[{self.clock}]: {contenido}')
+#
+def clear():
+    Globals.resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
+    return Globals.resultado_ids
+
+def regresa():
+    return Globals.resultado_ids
