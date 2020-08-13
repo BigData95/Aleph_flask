@@ -4,10 +4,10 @@ import random
 import pathlib
 
 #todo: Hacer solo los import necesarios
-from .auxiliar import *
-from .daemons import *
+from .auxiliar import daemon_do, encolar
+from .daemons import T1Daemon, T2Daemon, T3Daemon
+from .salidas import add_all, add_result, regresa  
 from .mensajes import *
-
 # Del simulador
 from .simulador import Model, Simulation
 
@@ -178,15 +178,15 @@ def buffer(self, event):
                             'id_copy': copia, 
                             'reported': 0
                             }
-                insert(self, 
-                    "T1DaemonID", 
-                    self.id, 
+                insert(self,  #Para qManager
+                    "T1DaemonID",
+                    self.id,    
                     self.id, 
                     parametros,
                     "HIGH", 
                     "STORE", 
                     nodo_objetivo=id_nodo
-                    ) # Para qmanager
+                    )
 
     # TODO: QUIZA SE PUEDE GENERALIZAR REPORT PARA TODOS LOS TIPOS DE DEMONIOS
     if event.source_element == "t1daemon":
@@ -237,13 +237,14 @@ def buffer(self, event):
 
             resultados = True  # ! Variable de prueba, esto lo deberia de regresar un proceso
             if resultados:
+                print(f'Parametos en resulados {event.parametros}')
                 report(self, resultados)
 
 
 def qManager(self, event):  # QManager
     # Este if esta pensando en la salida de GUI. 
-    if event.parametros != None:
-        add_result(self, event.parametros['id_copy'] , "##Proxy##")
+    # if event.parametros != None:
+    #     add_result(self, event.parametros['id_copy'] , "##Proxy##")
     print("########################################################################################## QManager")
 
     # Cualquier cosa que le llega, la encola segun su prioridad
@@ -251,6 +252,8 @@ def qManager(self, event):  # QManager
     print("Operacion", event.operacion)
     
     if event.name == "T1DaemonID":
+        #!HOTFIX
+        add_result(self, event.parametros['id_copy'] , "#QManager#")
         if event.operacion == "STORE":
             # Ver diagrada Sotage process, first phase, le sigue Queue Manager & type 1
             # execution daemon with delayed answer
@@ -260,7 +263,7 @@ def qManager(self, event):  # QManager
             add_result(self, event.parametros['id_copy'] , f'La prioridad es: {event.prioridad}')
             print("La prioridad es :", event.prioridad)
 
-            elementos = [1, event.target, event.source, event.operacion, event.parametros]
+            elementos = [1, event.nodo_objetivo, event.source, event.operacion, event.parametros]
             encolar(self, elementos, event.prioridad)
             print("Deberia encolar!!!!!")
             add_result(self, event.parametros['id_copy'] , "Deberia encolar")
@@ -279,7 +282,7 @@ def qManager(self, event):  # QManager
 
     if event.name == "T3DaemonID":
         if event.operacion == "STORE":
-            add_result(self, event.parametros['id_copy'] , "Pata el T3Daemon")
+            add_result(self, event.parametros['id_copy'] , "Para el T3Daemon")
             print("Para el t3 Daemon")
             elementos = [3, event.target, event.source, event.operacion, event.parametros]
             encolar(self, elementos, event.prioridad)
@@ -301,7 +304,7 @@ def qManager(self, event):  # QManager
         
     if event.name == "FREE":
         # TODO: A MENOS QUE TODOS ESTEN LIBRES DE NUEVO SE USA EL METODO daemon_do, de otra forma se le asigna el
-        add_all(self, '##Proxy')
+        add_all(self, '##QManager##')
         #  que puedea hacer
         add_all(self, f'Se libero el daemon tipo {event.operacion}. ID:{event.target_element_id}')
         print("Se libero el daemon tipo", event.operacion, "Con Id:", event.target_element_id)
@@ -318,6 +321,7 @@ def qManager(self, event):  # QManager
 # Con la finalidad de cumplir con la condicion de que tiene que confirmar la conclusion de su tarea
 def t1_Daemon(self, event):
     print("########################################################################################## DEMON 1")
+    add_result(self, event.parametros['id_copy'] , "##T1Daemon##")
     # Ver: Que Manager & Type 1 Execution Daemon, with delayed answer
     if event.name == "EXECUTE":
         add_result(self, event.parametros['id_copy'] ,
@@ -326,7 +330,9 @@ def t1_Daemon(self, event):
         self.t1_daemons[event.target_element_id].execute(self, event)
 
     if event.name == "TIMER":
-        print("Recibo timer desde t1Daemon method", event.target_element_id)
+        print("Timer desde T1Daemon", event.target_element_id)
+        add_result(self, event.parametros['id_copy'] , 
+                   f'Timer desde T1Daemon {event.target_element_id}')
         self.t1_daemons[event.target_element_id].timer(self)
 
     if event.name == "CONFIRM":
@@ -343,6 +349,8 @@ def t3_Daemon(self, event):
     print("########################################################################################## DEMON 3")
     if event.name == "EXECUTE":
         print("ESTE ES EL DEMONIO TIPO 3")
+        add_result(self, event.parametros['id_copy'] , "Este es el T3Daemon: Execute")
+        print(event.parametros)
         self.t3_daemons[event.target_element_id].execute(self, event)
     if event.name == "TIMER":
         # El parametro event.nodo_objetivo contiene el clone_id

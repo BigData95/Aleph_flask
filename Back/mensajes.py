@@ -1,5 +1,5 @@
 from .simulador.event import Event
-
+from .salidas import add_result, add_all
 
 class Mensaje(Event):
     """ Modifica la clase Event para agregar mas parametros necesarios para el algoritmo
@@ -178,7 +178,7 @@ def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_
                 )
 
 
-def startTimer(self, internal_target, internal_source, timer_value=1):
+def startTimer(self, id_copy, internal_target, internal_source, timer_value=1):
     # No confundir con el metodo "mensaje", en ese metodo no puedes manipular el tiempo en el que se manda.
     newEvent = Mensaje("TIMER",
                        "",
@@ -189,7 +189,8 @@ def startTimer(self, internal_target, internal_source, timer_value=1):
                        "t1daemon",
                        internal_target,
                        internal_source,
-                       None, None, None,
+                       id_copy,
+                       None, None,
                        None, None, None,  # ! CORRESPONDE A LA LISTA DE FALLOS
                        )  # port=0
     # Parametros: --> [newFileName, IdCopia,[result,reported],state]
@@ -225,9 +226,11 @@ def invokeTask(self, target, operacion, parametros, daemon_id):
                 operacion,
                 "buffer",
                 "t1daemon",
-                nodo_objetivo=target,
+                nodo_objetivo=target, #TODO: Fix, tiene que ser el nodo regresado por el oraculo
                 elem_int_rem_id=daemon_id
                 )
+        print("Yo soy el nodo ", self.id)
+        
         print("Soy T1 y mando a ", target)
     if operacion == "ELIMINATECOPY":  # Manda al proxy
         pass

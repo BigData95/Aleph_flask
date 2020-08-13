@@ -1,14 +1,13 @@
 
 """
-Junta todas las constantes del sistema.
-Esta por separado para evitar importes circulares para el caso especial de
-Globals
+Junta todas las constantes del sistema y los metodos que involucran la salida al GUI
+Esta por separado para evitar importes circulares. No puede importar ningun modulo
 """
 
 
 class Globals(object):
     """Proporciona la variable global que se utilizara para mandar al contexto de la GUI
-    y la manipulacion de la variable se definen en auxiliar.py"""
+    y la manipulacion de la variable se definen mas abajo"""
     resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
 
     # @staticmethod
@@ -45,3 +44,23 @@ class Config(object):
 
     # Numero de buffers
     BUFFERS = 5
+
+
+def add_result(self, id, contenido):
+    Globals.resultado_ids[id].append(f'[{self.clock}]: {contenido}')
+    # print(f'[{self.clock}]: {contenido}')
+
+
+def add_all(self, contenido):
+    for elemento in range(len(Globals.resultado_ids)):
+        Globals.resultado_ids[elemento].append(
+            f'[{self.clock}]:[ALL]: {contenido}'
+        )
+    # print(f'[{self.clock}]: {contenido}')
+#
+def clear():
+    Globals.resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
+    return Globals.resultado_ids
+
+def regresa():
+    return Globals.resultado_ids

@@ -1,6 +1,5 @@
 from .mensajes import *
-# from .nexo import add_result, add_all
-from .resultados import Globals
+from .salidas import add_result, add_all
 
 """
 Metodos necesarios para el algoritmo, pero que no aparecen en los diagramas o
@@ -176,21 +175,21 @@ def contPrioridad(self, prioridad):
 # resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
 
 
-def add_result(self, id, contenido):
-    Globals.resultado_ids[id].append(f'[{self.clock}]: {contenido}')
-    # print(f'[{self.clock}]: {contenido}')
+# def add_result(self, id, contenido):
+#     Globals.resultado_ids[id].append(f'[{self.clock}]: {contenido}')
+#     # print(f'[{self.clock}]: {contenido}')
 
 
-def add_all(self, contenido):
-    for elemento in range(len(Globals.resultado_ids)):
-        Globals.resultado_ids[elemento].append(
-            f'[{self.clock}]:[ALL]: {contenido}'
-        )
-    # print(f'[{self.clock}]: {contenido}')
-#
-def clear():
-    Globals.resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
-    return Globals.resultado_ids
+# def add_all(self, contenido):
+#     for elemento in range(len(Globals.resultado_ids)):
+#         Globals.resultado_ids[elemento].append(
+#             f'[{self.clock}]:[ALL]: {contenido}'
+#         )
+#     # print(f'[{self.clock}]: {contenido}')
+# #
+# def clear():
+#     Globals.resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
+#     return Globals.resultado_ids
 
-def regresa():
-    return Globals.resultado_ids
+# def regresa():
+#     return Globals.resultado_ids

@@ -4,7 +4,7 @@ from . import auth
 from app.forms import FalloForm #, ClearForm 
 
 
-from Back import StorageProcessMsg, auxiliar
+from Back import StorageProcessMsg, salidas
 
 @auth.route('/aleph', methods=['GET', 'POST'])
 def inicio():
@@ -19,7 +19,7 @@ def inicio():
                 fallo_form.tiempo_recuperacion.data
                 ) 
         else:
-            resultados = auxiliar.clear()
+            resultados = salidas.clear()
             # return  redirect(url_for('auth.inicio'))
         print(fallo_form.limpiar.data)
 
