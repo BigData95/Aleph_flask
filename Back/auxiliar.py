@@ -11,8 +11,8 @@ PRIORIDAD_MEDIA = 3
 PRIORIDAD_BAJA = 3
 
 
-def encargoDaemon(self, prioridad, id_daemon, tipo_daemon):
-    next_task = []
+def encargoDaemon(self, prioridad, id_daemon, id_copy):
+    # next_task = []
     if prioridad == "HIGH":
         next_task = self.queue_high.pop(0)
         self.cont_prioridad_alta += 1
@@ -26,8 +26,17 @@ def encargoDaemon(self, prioridad, id_daemon, tipo_daemon):
         raise ValueError("La prioridad no se encuentra definida")
 
     print("MANDO EXECUTE AL", id_daemon, "PRIORIDAD:", prioridad)
-    _, target_nodo, source, operacion, parametros = next_task
-    execute(self, target_nodo, source, operacion, parametros, prioridad, id_daemon, tipo_daemon)
+    add_result(self, id_copy, f'Mando execute al {id_daemon} Prioridad: {prioridad}')
+    # _, target_nodo, source, operacion, parametros = next_task.values()
+    execute(self,
+            next_task['nodo_objetivo'],
+            next_task['source'],
+            next_task['operacion'],
+            next_task['parametros'],
+            prioridad,
+            id_daemon,
+            next_task['tipo_daemon']
+            )
 
 
 def getIndexPositions(list_elements, element):
@@ -75,10 +84,10 @@ def encolar(self, elementos, prioridad):
         self.queue_low.append(elementos)
 
 
-import time
+# import time
 
 
-def daemon_do(self):
+def daemon_do(self, id_copy=None):
     if True in self.status_daemons:
         # print("HAY DEMONIOS")
         despachado = False
@@ -86,7 +95,7 @@ def daemon_do(self):
             free_daemons = getIndexPositions(self.status_daemons, True)
             if self.politica == "HIGH":
                 if self.queue_high:
-                    prueba2(self, self.queue_high, free_daemons, "HIGH")
+                    prueba2(self, self.queue_high, free_daemons, "HIGH", id_copy)
                     despachado = True
                 else:  # NO HAY NADA EN LA LISTA DE PRIORIDAD ALTA, CAMBIAMOS POLITICA
                     print("@@No hay nada en la lista de prioirdad alta, cambiamos politica, vamos media")
@@ -94,14 +103,14 @@ def daemon_do(self):
             if self.politica == "MEDIUM":
                 print("Entro aca")
                 if self.queue_medium:
-                    prueba2(self, self.queue_medium, free_daemons, "MEDIUM")
+                    prueba2(self, self.queue_medium, free_daemons, "MEDIUM", id_copy)
                     despachado = True
                 else:
                     print("@@No hay nada en la lista de prioirdad media, cambiamos politica, vamos baja")
                     self.politica = "LOW"
             if self.politica == "LOW":
                 if self.queue_low:
-                    prueba2(self, self.queue_low, free_daemons, "LOW")
+                    prueba2(self, self.queue_low, free_daemons, "LOW", id_copy)
                     despachado = True
                 else:
                     print("@@No hay nada en la lista de prioirdad baja, cambiamos politica,vamos alta")
@@ -113,38 +122,44 @@ def daemon_do(self):
         print("No hay demonios disponibles")
 
 
-def prueba2(self, queue, free_daemons, prioridad):
+def prueba2(self, queue, free_daemons, prioridad, id_copy):
     for _ in range(len(queue)):
-        tipo_daemon = queue[0][0]
+        tipo_daemon = queue[0]['tipo_daemon']
         if tipo_daemon == 1 and 1 in free_daemons:
             get_free_daemon = freeDaemon(self.t1_daemons)
             if get_free_daemon != -1:
-                print("Daemon tipo 1 se le envia el trabajo", get_free_daemon)
-                encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)
+                print("Se envia trabajo al T1Daemon:", get_free_daemon)
+                add_result(self, id_copy, f'Se envia trabajo al T1Daemon: {get_free_daemon}')
+                encargoDaemon(self, prioridad, get_free_daemon, id_copy)
                 self.t1_daemons[get_free_daemon].status = "BUSY"  # Para evitar errores
                 # Revisa si hay mas libres aparte de el, cambia a false si no hay
                 check_daemons(self, 1)
             else:  # No hay demonios disponibles
                 self.status_daemons[0] = False
                 print(free_daemons)
-                print("Ya no hay demonios tipo 1")
+                add_result(self, id_copy, f'{free_daemons}')
+                print("Ya no hay demonios T1Daemons")
+                add_result(self, id_copy, "Ya no hay T1Daemons")
                 break
         elif tipo_daemon == 2 and 2 in free_daemons:
             get_free_daemon = freeDaemon(self.t2_daemons)
             if get_free_daemon != -1:
-                print("Daemon tipo2 se le envio el trabajo:", get_free_daemon)
-                encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)
+                print("Se envia trabajo al T2Daemon:", get_free_daemon)
+                add_result(self, id_copy, f'Se envia trabajo al T2Daemon: {get_free_daemon}')
+                encargoDaemon(self, prioridad, get_free_daemon, id_copy)
                 self.t2_daemons[get_free_daemon].status = "BUSY"
                 check_daemons(self, 2)
             else:
                 self.status_daemons[1] = False
-                print("Ya no hay demonios tipo 2")
+                print("Ya no hay demonios T2Daemons")
+                add_result(self, id_copy, "Ya no hay T2Daemons")
         elif tipo_daemon == 3 and 3:  # in free_daemons:
             # El demonio tipo 3 siempre esta disponible
             # todo: Solo deberia de hacer referencia a un demonio tipo 3
             get_free_daemon = freeDaemon(self.t3_daemons)  # SOlo hay un demonio tipo 3
-            print("Daemon tipo 3 se le envio el trabajo:", get_free_daemon)
-            encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)
+            print("Se envia trabajo al T3Daemon:", get_free_daemon)
+            add_result(self, id_copy, f'Se envia trabajo al T3Daemon: {get_free_daemon}')
+            encargoDaemon(self, prioridad, get_free_daemon, id_copy)
             # if get_free_daemon != -1:
             #     print("Daemon tipo 3 se le envio el trabajo:", get_free_daemon)
             #     encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)

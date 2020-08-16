@@ -253,20 +253,27 @@ def qManager(self, event):  # QManager
     
     if event.name == "T1DaemonID":
         #!HOTFIX
-        add_result(self, event.parametros['id_copy'] , "#QManager#")
+        add_result(self, event.parametros['id_copy'], "#QManager#")
         if event.operacion == "STORE":
             # Ver diagrada Sotage process, first phase, le sigue Queue Manager & type 1
             # execution daemon with delayed answer
             
             print("Para el t1 DAEMON")
-            add_result(self, event.parametros['id_copy'] , "Para el T1Daemon")
-            add_result(self, event.parametros['id_copy'] , f'La prioridad es: {event.prioridad}')
+            add_result(self, event.parametros['id_copy'], "Para el T1Daemon")
+            add_result(self, event.parametros['id_copy'], f'La prioridad es: {event.prioridad}')
             print("La prioridad es :", event.prioridad)
 
-            elementos = [1, event.nodo_objetivo, event.source, event.operacion, event.parametros]
+            # elementos = [1, event.nodo_objetivo, event.source, event.operacion, event.parametros]
+            elementos = {
+                'tipo_daemon': 1,
+                'nodo_objetivo': event.nodo_objetivo,
+                'source': event.source,
+                'operacion': event.operacion,
+                'parametros': event.parametros
+            }
             encolar(self, elementos, event.prioridad)
             print("Deberia encolar!!!!!")
-            add_result(self, event.parametros['id_copy'] , "Deberia encolar")
+            add_result(self, event.parametros['id_copy'], "Deberia encolar")
 
         if event.operacion == "RETRIEVE":
             print("Ver diagrama Retrieeval process, first phase")
@@ -284,7 +291,14 @@ def qManager(self, event):  # QManager
         if event.operacion == "STORE":
             add_result(self, event.parametros['id_copy'] , "Para el T3Daemon")
             print("Para el t3 Daemon")
-            elementos = [3, event.target, event.source, event.operacion, event.parametros]
+            # elementos = [3, event.target, event.source, event.operacion, event.parametros]
+            elementos = {
+                'tipo_daemon': 3,
+                'nodo_objetivo': event.target,
+                'source': event.source,
+                'operacion': event.operacion,
+                'parametros': event.parametros
+            }
             encolar(self, elementos, event.prioridad)
             print("Debe encolar")
             add_result(self, event.parametros['id_copy'] , "Debe encolar")
@@ -296,12 +310,11 @@ def qManager(self, event):  # QManager
             Por cada 3 tareas de alta prioridad se despacha 1 de prioridad Media y
             por cada 2 tareas de priorida media se despacha 1 de prioridad Baja
         '''
-    # if event.parametros != None:
-    #     daemon_do(self, event.parametros['id_copy'])
-    # else:
-    #     print("######################################entra siempre!!!@@!@!@!@!")
-    daemon_do(self)
-        
+    if event.parametros != None:
+        daemon_do(self, event.parametros['id_copy'])
+    else:
+        daemon_do(self)
+
     if event.name == "FREE":
         # TODO: A MENOS QUE TODOS ESTEN LIBRES DE NUEVO SE USA EL METODO daemon_do, de otra forma se le asigna el
         add_all(self, '##QManager##')
@@ -321,7 +334,8 @@ def qManager(self, event):  # QManager
 # Con la finalidad de cumplir con la condicion de que tiene que confirmar la conclusion de su tarea
 def t1_Daemon(self, event):
     print("########################################################################################## DEMON 1")
-    add_result(self, event.parametros['id_copy'] , "##T1Daemon##")
+    print(f'Estos son los parametros:{event.parametros}')
+    add_result(self, event.parametros['id_copy'], "##T1Daemon##")
     # Ver: Que Manager & Type 1 Execution Daemon, with delayed answer
     if event.name == "EXECUTE":
         add_result(self, event.parametros['id_copy'] ,
