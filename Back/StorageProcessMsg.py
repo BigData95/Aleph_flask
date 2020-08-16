@@ -191,6 +191,7 @@ def buffer(self, event):
     # TODO: QUIZA SE PUEDE GENERALIZAR REPORT PARA TODOS LOS TIPOS DE DEMONIOS
     if event.source_element == "t1daemon":
         if event.name == "REPORT":
+            add_result(self, event.parametros['id_copy'], "##Buffer##")
             if event.operacion == "SUCESS" or event.parametros["reported"] >= MAX_FAILURES:
                 add_result(self, event.parametros["id_copy"] , f"Operacion exito {event.name}")
                 print(f"Operacion exito {event.name}")
@@ -217,6 +218,9 @@ def buffer(self, event):
         if event.name == "STORE":
             # Viene de invokeTask de T1Daemon, le pide hacer esta operacion porque fue elegido por el oraculo.
             print("tengo que hacer un store! Mando mensaje de confirmacion a t1 daemon, o no", event.source_element_id)
+            add_result(self, event.parametros['id_copy'], '##Buffer##')
+            add_result(self, event.parametros['id_copy'],
+                        f'Tengo que hacer un Store. Mando ensaje de confirmacion a t1Daemon {event.source_element_id}')
             if event.parametros["id_copy"] > 1:
                 # Creo clones
                 print("Funiona!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!?")
@@ -234,10 +238,13 @@ def buffer(self, event):
                     )
             else:
                 print("Vamos a mandar confirStorage, soy el original",event.parametros["id_copy"])
+                add_result(self, event.parametros['id_copy'], 
+                            'Vamos a mandar confirmStorage, soy el original' )
 
             resultados = True  # ! Variable de prueba, esto lo deberia de regresar un proceso
             if resultados:
                 print(f'Parametos en resulados {event.parametros}')
+                add_all(self, f'Parametros en resultados {event.parametros}')
                 report(self, resultados)
 
 
