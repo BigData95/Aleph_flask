@@ -1,16 +1,12 @@
 # from StorageProcessMsg import T1_TIMER_STATE
 from .mensajes import *
-# from .auxiliar import add_result, add_all
 from .salidas import add_result, add_all
 
 import copy
 
-
-
 """
 
 """
-
 
 T1_TIMER_STATE = 3
 
@@ -60,32 +56,32 @@ class T1Daemon(Daemon):
         self.__timer_state = self.__parametros['timer_state']
         # self.__timer_state = self.__parametros.get("timer_state", 0)  # Si es la segunda vez que viene
         print("Soy t1Class y mando invoketask")
-        add_result(nodo_info, event.parametros['id_copy'] , "t1Class: Mando Invoketask")
+        add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Invoketask", "t1daemon")
         parametros_envio = {
-                        'file': self.__parametros['file'], 
-                        'id_file': self.__parametros['id_file'],
-                        'id_copy': self.__parametros['id_copy']
-                        }
+            'file': self.__parametros['file'],
+            'id_file': self.__parametros['id_file'],
+            'id_copy': self.__parametros['id_copy']
+        }
         invokeTask(nodo_info,
-                    self.__nodo_objetivo, 
-                    self.__operacion, 
-                    parametros_envio, 
-                    self.daemon_id
-                    )
+                   self.__nodo_objetivo,
+                   self.__operacion,
+                   parametros_envio,
+                   self.daemon_id
+                   )
         # Se manda el id_copy solo para poder imprimir en GUI
-        startTimer(nodo_info, 
-                   {'id_copy':event.parametros['id_copy']}, # Se manda como unico parametro
-                   self.daemon_id, 
-                   self.daemon_id) #TODO: Agregar la variable del timer
+        startTimer(nodo_info,
+                   {'id_copy': event.parametros['id_copy']},  # Se manda como unico parametro
+                   self.daemon_id,
+                   self.daemon_id)  # TODO: Agregar la variable del timer
         print("Soy t1Class y mando timer")
-        add_result(nodo_info, event.parametros['id_copy'] , "t1Class: Mando Timer")
+        add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Timer", "t1daemon")
 
     # Utililza nodo
     def timer(self, nodo_info):
         """Utiliza nodo_info para obtener la informacion del nodo donde vive, como el id y el clock """
         if self.result:
             print("Ya llego la confirmacion, la mandamos SUCESS")
-            add_result(nodo_info, self.__parametros['id_copy'] , "LLego confirmacion, mandomos SUCESS")
+            add_result(nodo_info, self.__parametros['id_copy'], "LLego confirmacion, mandomos SUCESS", "t1daemon")
             print("Estos son los parametros!", self.__parametros)
             self.__parametros["reported"] += 1  # Se hace desde aqui , no desde el buffer
             report(nodo_info, "SUCESS", self.daemon_id, self.__parametros)
@@ -94,29 +90,29 @@ class T1Daemon(Daemon):
             if self.__timer_state < T1_TIMER_STATE:
                 self.__parametros["timer_state"] = self.__timer_state + 1
                 print("Hago insert porque no recibi repuesta")
-                add_result(nodo_info, self.__parametros['id_copy'] , "Hago insert pues no recibi respuesta")
-                insert(nodo_info, 
-                    "T1DaemonID", 
-                    nodo_info.id, 
-                    nodo_info.id, 
-                    self.__parametros,
-                    self.__prioridad, 
-                    self.__operacion, 
-                    self.__nodo_objetivo
-                    )
+                add_result(nodo_info, self.__parametros['id_copy'], "Hago insert pues no recibi respuesta", "t1daemon")
+                insert(nodo_info,
+                       "T1DaemonID",
+                       nodo_info.id,
+                       nodo_info.id,
+                       self.__parametros,
+                       self.__prioridad,
+                       self.__operacion,
+                       self.__nodo_objetivo
+                       )
             else:
                 print("Debemos reportar la falla")
-                add_result(self, self.__parametros['id_copy'] , "Debemos reportar la falla")
+                add_result(self, self.__parametros['id_copy'], "Debemos reportar la falla", "t1daemon")
                 self.__parametros["reported"] += 1
                 print("PARAMETROS QUE ENVIO:", self.__parametros)
-                report(nodo_info, 
-                    "FAILURE", 
-                    self.daemon_id, 
-                    self.__parametros,
-                    self.__prioridad, 
-                    self.__operacion, 
-                    self.__nodo_objetivo
-                    )
+                report(nodo_info,
+                       "FAILURE",
+                       self.daemon_id,
+                       self.__parametros,
+                       self.__prioridad,
+                       self.__operacion,
+                       self.__nodo_objetivo
+                       )
             # TODO: NO OLVIDAR CAMBIAR RESULT A FALSE
         # Aviso que ya estoy disponible
         self.__status = "FREE"
@@ -142,9 +138,9 @@ class T3Daemon(Daemon):
         self.__parametros['prioridad'] = event.prioridad
         self.__parametros['nodo_objetivo'] = event.nodo_objetivo
         print("Execute daemon 3")
-        add_result(nodo_info, self.__parametros['id_copy'] , "Execute Daemon 3")
+        add_result(nodo_info, self.__parametros['id_copy'], "Execute Daemon 3", "t3daemon")
         # print(self.__parametros)
-        startTimerClone(nodo_info, 
+        startTimerClone(nodo_info,
                         event.parametros['timer'],
                         event.parametros['tipo_daemon'],
                         self.__clon_id, self.daemon_id
@@ -154,30 +150,30 @@ class T3Daemon(Daemon):
 
     def timer(self, nodo_info, nodo_id):
         print("Timer de T3Daemon")
-        add_result(nodo_info, self.__parametros['id_copy'] , "Timer de T3Daemon")
+        add_result(nodo_info, self.__parametros['id_copy'], "Timer de T3Daemon", "t3daemon")
         if not nodo_id in self.__matar_clon:
-            #Para t1Daemon
+            # Para t1Daemon
             parametros_envio = {
-                        'file':self.__parametros['file'],
-                        'id_file':self.__parametros['id_file'],
-                        'id_copy':self.__parametros['id_copy'],
-                        'reported':0
-                        }
+                'file': self.__parametros['file'],
+                'id_file': self.__parametros['id_file'],
+                'id_copy': self.__parametros['id_copy'],
+                'reported': 0
+            }
             print("Mando insert")
-            add_result(nodo_info, self.__parametros['id_copy'] , "Mando insert")
-            insert(nodo_info, 
-                    self.__parametros['tipo_daemon'],
-                    nodo_info.id,
-                    nodo_info.id,
-                    parametros_envio, 
-                    self.__parametros['prioridad'],
-                    self.__parametros['operacion'],
-                    elemento_interno_remitente="t3Daemon", 
-                    nodo_objetivo=self.__parametros['nodo_objetivo']
-                    )
+            add_result(nodo_info, self.__parametros['id_copy'], "Mando insert", "t3daemon")
+            insert(nodo_info,
+                   self.__parametros['tipo_daemon'],
+                   nodo_info.id,
+                   nodo_info.id,
+                   parametros_envio,
+                   self.__parametros['prioridad'],
+                   self.__parametros['operacion'],
+                   elemento_interno_remitente="t3Daemon",
+                   nodo_objetivo=self.__parametros['nodo_objetivo']
+                   )
         else:
             print("Este clon ya se mato, por ordenenes de arriba")
-            add_result(self, self.__parametros['id_copy'] , "Este clon ya se mato,por ordenes de arriba")
+            add_result(self, self.__parametros['id_copy'], "Este clon ya se mato,por ordenes de arriba", "t3daemon")
 
     def kill(self, clone_ID):
         # Debe llevar registro de los clones que mata para que no haga insert
@@ -186,4 +182,4 @@ class T3Daemon(Daemon):
             self.__clones.remove(clone_ID)
         else:
             pass
-            #todo: throw exception.
+            # todo: throw exception.

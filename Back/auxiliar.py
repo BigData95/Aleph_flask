@@ -26,7 +26,7 @@ def encargoDaemon(self, prioridad, id_daemon, id_copy):
         raise ValueError("La prioridad no se encuentra definida")
 
     print("MANDO EXECUTE AL", id_daemon, "PRIORIDAD:", prioridad)
-    add_result(self, id_copy, f'Mando execute al {id_daemon} Prioridad: {prioridad}')
+    add_result(self, id_copy, f'Mando execute al {id_daemon} Prioridad: {prioridad}', "qmanager")
     # _, target_nodo, source, operacion, parametros = next_task.values()
     execute(self,
             next_task['nodo_objetivo'],
@@ -129,7 +129,7 @@ def prueba2(self, queue, free_daemons, prioridad, id_copy):
             get_free_daemon = freeDaemon(self.t1_daemons)
             if get_free_daemon != -1:
                 print("Se envia trabajo al T1Daemon:", get_free_daemon)
-                add_result(self, id_copy, f'Se envia trabajo al T1Daemon: {get_free_daemon}')
+                add_result(self, id_copy, f'Se envia trabajo al T1Daemon: {get_free_daemon}', "qmanager")
                 encargoDaemon(self, prioridad, get_free_daemon, id_copy)
                 self.t1_daemons[get_free_daemon].status = "BUSY"  # Para evitar errores
                 # Revisa si hay mas libres aparte de el, cambia a false si no hay
@@ -137,28 +137,28 @@ def prueba2(self, queue, free_daemons, prioridad, id_copy):
             else:  # No hay demonios disponibles
                 self.status_daemons[0] = False
                 print(free_daemons)
-                add_result(self, id_copy, f'{free_daemons}')
+                add_result(self, id_copy, f'{free_daemons}', "qmanager")
                 print("Ya no hay demonios T1Daemons")
-                add_result(self, id_copy, "Ya no hay T1Daemons")
+                add_result(self, id_copy, "Ya no hay T1Daemons", "qmanager")
                 break
         elif tipo_daemon == 2 and 2 in free_daemons:
             get_free_daemon = freeDaemon(self.t2_daemons)
             if get_free_daemon != -1:
                 print("Se envia trabajo al T2Daemon:", get_free_daemon)
-                add_result(self, id_copy, f'Se envia trabajo al T2Daemon: {get_free_daemon}')
+                add_result(self, id_copy, f'Se envia trabajo al T2Daemon: {get_free_daemon}', "qmanager")
                 encargoDaemon(self, prioridad, get_free_daemon, id_copy)
                 self.t2_daemons[get_free_daemon].status = "BUSY"
                 check_daemons(self, 2)
             else:
                 self.status_daemons[1] = False
                 print("Ya no hay demonios T2Daemons")
-                add_result(self, id_copy, "Ya no hay T2Daemons")
+                add_result(self, id_copy, "Ya no hay T2Daemons", "qmanager")
         elif tipo_daemon == 3 and 3:  # in free_daemons:
             # El demonio tipo 3 siempre esta disponible
             # todo: Solo deberia de hacer referencia a un demonio tipo 3
             get_free_daemon = freeDaemon(self.t3_daemons)  # SOlo hay un demonio tipo 3
             print("Se envia trabajo al T3Daemon:", get_free_daemon)
-            add_result(self, id_copy, f'Se envia trabajo al T3Daemon: {get_free_daemon}')
+            add_result(self, id_copy, f'Se envia trabajo al T3Daemon: {get_free_daemon}', "qmanager")
             encargoDaemon(self, prioridad, get_free_daemon, id_copy)
             # if get_free_daemon != -1:
             #     print("Daemon tipo 3 se le envio el trabajo:", get_free_daemon)
@@ -187,24 +187,3 @@ def contPrioridad(self, prioridad):
         self.politica = "HIGH"
 
 
-# resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
-
-
-# def add_result(self, id, contenido):
-#     Globals.resultado_ids[id].append(f'[{self.clock}]: {contenido}')
-#     # print(f'[{self.clock}]: {contenido}')
-
-
-# def add_all(self, contenido):
-#     for elemento in range(len(Globals.resultado_ids)):
-#         Globals.resultado_ids[elemento].append(
-#             f'[{self.clock}]:[ALL]: {contenido}'
-#         )
-#     # print(f'[{self.clock}]: {contenido}')
-# #
-# def clear():
-#     Globals.resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
-#     return Globals.resultado_ids
-
-# def regresa():
-#     return Globals.resultado_ids

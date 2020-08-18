@@ -230,7 +230,7 @@ def invokeTask(self, target, operacion, parametros, daemon_id):
                 elem_int_rem_id=daemon_id
                 )
         print("Yo soy el nodo ", self.id)
-        add_result(self, parametros['id_copy'] , f'Soy T1 y mando a{target}')
+        add_result(self, parametros['id_copy'] , f'Soy T1 y mando a{target}', "t1daemon")
         print("Soy T1 y mando a ", target)
     if operacion == "ELIMINATECOPY":  # Manda al proxy
         pass
