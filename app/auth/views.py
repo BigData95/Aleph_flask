@@ -1,15 +1,15 @@
-from flask import render_template 
+from flask import render_template
 
 from . import auth
-from app.forms import FalloForm #, ClearForm 
-
+from app.forms import FalloForm  # , ClearForm
 
 from Back import StorageProcessMsg, salidas
 
+
 @auth.route('/aleph', methods=['GET', 'POST'])
 def inicio():
-    resultados = ['vacio']
-    fallo_form = FalloForm()    
+    resultados = ['x']
+    fallo_form = FalloForm()
 
     if fallo_form.validate_on_submit():
         if not fallo_form.limpiar.data:
@@ -17,7 +17,7 @@ def inicio():
                 fallo_form.nodos_fallo.data,
                 fallo_form.tiempo_fallo.data,
                 fallo_form.tiempo_recuperacion.data
-                ) 
+            )
         else:
             resultados = salidas.clear()
             # return  redirect(url_for('auth.inicio'))
@@ -28,15 +28,14 @@ def inicio():
         'resultados': resultados,
     }
     return render_template('index.html', **contexto)
-    
-    
+
     # return render_template('index.html', **contexto)
+
 
 @auth.route('/clean')
 def clean():
-    
     contexto = {
         'resultados': ['vacio']
     }
-    
+
     return render_template('index.html', **contexto)

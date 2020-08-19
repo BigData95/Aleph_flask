@@ -1,3 +1,5 @@
+import re
+
 from .mensajes import *
 from .salidas import add_result, add_all
 
@@ -187,3 +189,16 @@ def contPrioridad(self, prioridad):
         self.politica = "HIGH"
 
 
+
+def toIntList(lista):
+    """Auxiliar: Convierte un String a una lista de enteros, \
+    funciona si el string esta delimitado por: , - o un espacio  """
+    respuesta = list()
+    delimitadores = " ", ",", "-"
+    regex = '|'.join(map(re.escape, delimitadores))
+    prelista = re.split(regex, lista)
+    # prelista = lista.split(',')
+    for elemento in prelista:
+        nuevo = int(elemento)
+        respuesta.append(nuevo)
+    return respuesta

@@ -4,7 +4,7 @@ import random
 import pathlib
 
 # todo: Hacer solo los import necesarios
-from .auxiliar import daemon_do, encolar
+from .auxiliar import daemon_do, encolar, toIntList
 from .daemons import T1Daemon, T2Daemon, T3Daemon
 from .salidas import add_all, add_result, regresa
 from .mensajes import *
@@ -437,7 +437,11 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
     for i in range(1, len(experiment.graph) + 1):
         m = Aleph()
         experiment.setModel(m, i)
-
+        
+    if lista_fallo is not None:
+        lista_fallo = toIntList(lista_fallo)
+        print(f'Esta es la lista: {lista_fallo}')
+        
     # inserta un evento semilla en la agenda y arranca
     seed = Mensaje(
         "DESPIERTA",  # Name
@@ -457,6 +461,7 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
         tiempo_recuperacion,  # tiempo_recuperacion
         0  # Port=0
     )
+
 
     experiment.init(seed)
     experiment.run()

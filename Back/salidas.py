@@ -61,7 +61,7 @@ def add_all(self, contenido, color="all"):
 
 #
 def clear():
-    resultado_ids = [
+    Globals.resultado_ids = [
         [['Copy 1'], ['all']],
         [['Copy 2'], ['all']],
         [['Copy 3'], ['all']]
