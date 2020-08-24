@@ -4,13 +4,16 @@ import random
 import pathlib
 
 # todo: Hacer solo los import necesarios
-from .auxiliar import daemon_do, encolar, toList
+from .auxiliar import encolar, toList
 from .daemons import T1Daemon, T2Daemon, T3Daemon
-from .salidas import add_all, add_result, regresa
+from .salidas import add_all, add_result, regresa, Config
+from .elementos import Cliente, Proxy, Buffer, QManager
+
 from .mensajes import *
 # Del simulador
 from .simulador import Model, Simulation
 from .memento import ConcreteMemento, Carataker, Memento
+
 # Martinez Vargas Edgar Ivan
 # 2153043702
 """ BabelRemasterChachanga5000
@@ -58,196 +61,95 @@ class Aleph(Model):
     def __init__(self):
         super().__init__()
         self._state = None
-        
-        self.t1_daemons = list()
-        [self.t1_daemons.append(T1Daemon(daemon_id)) for daemon_id in range(T1_DAEMONS)]
-
-        self.t2_daemons = list()
-        [self.t2_daemons.append(T2Daemon(daemon_id)) for daemon_id in range(T2_DAEMONS)]
-
-        self.t3_daemons = list()
-        [self.t3_daemons.append(T3Daemon(daemon_id)) for daemon_id in range(T3_DAEMONS)]
+        self.cliente = None
+        # Cliente
+        # if self.id == 1:
+        self.cliente = Cliente()
+        self.proxy = Proxy()
+        self.qManager = QManager()
 
         self.buffer = list()
-        [self.buffer.append(buffer_id) for buffer_id in range(BUFFERS)]
+        [self.buffer.append(Buffer(buffer_id)) for buffer_id in range(Config.BUFFERS)]
 
-        self.target_status = "ok"
-        self.wait_status = False
-        self.politica = "HIGH"
-        self.status_daemons = [True, True, True]
+        self.t1_daemons = list()
+        [self.t1_daemons.append(T1Daemon(daemon_id)) for daemon_id in range(Config.T1_DAEMONS)]
+
+        self.t2_daemons = list()
+        [self.t2_daemons.append(T2Daemon(daemon_id)) for daemon_id in range(Config.T2_DAEMONS)]
+
+        self.t3_daemons = list()
+        [self.t3_daemons.append(T3Daemon(daemon_id)) for daemon_id in range(Config.T3_DAEMONS)]
+
+        # self.buffer = list()
+        # [self.buffer.append(buffer_id) for buffer_id in range(BUFFERS)]
 
         self.id_nodos = []  # Guarda el id del nodo que hizo la operacion de store de forma exitosa
+        self.target_status = "ok"
 
         # QManager
-        self.queue_high = [[] for __ in range(0)]
-        self.queue_medium = [[] for __ in range(0)]
-        self.queue_low = [[] for __ in range(0)]
-
-        # Contador para politicas de servicio
-        self.cont_prioridad_alta = 0
-        self.cont_prioridad_media = 0
-        self.cont_prioridad_baja = 0
 
     def receive(self, event):
         """ Funciona como interfaz, manda los mensajes a los elementos del sistema que corresponda. """
 
         if event.name == "DESPIERTA":
-            Cliente(self)
+            cliente_do(self)
 
         if event.target_element == "proxy":
-            Proxy(self, event)
+            proxy_do(self, event)
 
         if event.target_element == "buffer":
-            buffer(self, event)
+            buffer_do(self, event)
 
         if event.target_element == "qmanager":
-            qManager(self, event)
+            qManager_do(self, event)
 
         if event.target_element == "t1daemon":
-            t1_Daemon(self, event)
+            t1_Daemon_do(self, event)
 
         if event.target_element == "t2daemon":
-            t2_Daemon(self, event)
+            t2_Daemon_do(self, event)
 
         if event.target_element == "t3daemon":
-            t3_Daemon(self, event)
+            t3_Daemon_do(self, event)
 
     def save_state(self) -> Memento:
         return ConcreteMemento(self._state)
-    
+
     def restore(self, memento: Memento) -> None:
         self._state = memento.get_state()
         print(f'My estado cambio ha {self._state}')
 
-# TODO: Hacer de los clientes una clase para poder simular varios
-def Cliente(self):
-    """
+    # TODO: Hacer de los clientes una clase para poder simular varios
 
-    """
+
+def cliente_do(self):
     print("Que tipo de accion quieres realizar \n1)Store\n2)Retrieve\n")
     accion = 1
-    # Por ahora solo hace Store
     if accion == 1:
-        # Ingresa archivo, lee nombre
-        destino = random.randint(2, 4)  # ID del nodo
-        # Los parametros vienen del cliente
-        parametros = ["file", "file_name"]
-        store(self, parametros, destino)
-        print(f'Mando Store al Proxy:{destino}')
-        add_all(self, f'Mando Store al Proxy:{destino}')
+        self.cliente.store(self)
 
 
-def Proxy(self, event):
-    print("##Proxy##")
-    add_all(self, "##Proxy")
+def proxy_do(self, event):
     if event.name == "STORE":
-        """ Para referencia visual consultar Storage process, first phase (1) Client App Initiates """
-        print(f'Proxy de: {self.id}, uso buffer')
-        add_all(self, f'Proxy de: {self.id}, uso buffer')
-        file_, file_name = event.parametros
-        new_name = generateNewName(file_name)
-        # print(new_name)
-        parametros = [file_, new_name, NUM_COPIES]  # FileID es NewName
-        store(self, parametros, self.id)  # Para buffer
+        self.proxy.store(self, event)
 
     'To ask: Proxy or elsewhere,como lo decidimos '
 
 
-def buffer(self, event):
+def buffer_do(self, event):
     print("##Buffer##")
     if event.source_element == "proxy":
         if event.name == "STORE":
-            file_, new_name, num_copy = event.parametros  # File,FileName, nuCopy
-            for copia in range(num_copy):  # Para cada copia
-                # add_result(self, copia, "Oracle Invocado")
-                id_nodo = invokeOracle()
-                add_result(self, copia, "##Buffer##", "buffer")
-                add_result(self, copia,
-                           f'Id del nodo regresado por oraculo: {id_nodo}', "buffer")
-                print("El id del nodo regresado por el Oraculo, es : " + str(id_nodo))
-                # initiate(result = FAILURE_SUSPICION, reported=0)
-                # reported = 0
-                # NewName es unico para cada File
-                parametros = {
-                    'file': file_,
-                    'id_file': new_name,
-                    'id_copy': copia,
-                    'reported': 0
-                }
-                insert(self,  # Para qManager
-                       "T1DaemonID",
-                       self.id,
-                       self.id,
-                       parametros,
-                       "HIGH",
-                       "STORE",
-                       nodo_objetivo=id_nodo
-                       )
-
+            self.buffer[0].store_from_proxy(self, event)
     # TODO: QUIZA SE PUEDE GENERALIZAR REPORT PARA TODOS LOS TIPOS DE DEMONIOS
     if event.source_element == "t1daemon":
         if event.name == "REPORT":
-            add_result(self, event.parametros['id_copy'], "##Buffer##", "buffer")
-            if event.operacion == "SUCESS" or event.parametros["reported"] >= MAX_FAILURES:
-                add_result(self, event.parametros["id_copy"], f"Operacion exito {event.operacion}", "buffer")
-                print(f"Operacion exito {event.operacion}")
-                confirmStorage(self, event.parametros["id_file"], event.parametros["id_copy"], event.name)
-                update()  # TODO: Update, actualiza la lista del buffer segun IDFILE e idCopy
-            else:  # Fue failure o reported < MAX_FAILURES (NO ESTOY SEGURO LOL)
-                # if event.parametros["reported"] < MAX_FAILURES: Tomar en cuenta que si la operacion es FAILURE
-                # en event.operacion viene la opericon que se intento en el nodo, no "FAILURE", si fue SUCESS en
-                # operacion se pone SUCESS en lugar de la operacion que se intento
-
-                # add_result(self, 'all', f"{event.parametros}")
-                add_result(self, event.parametros['id_copy'], "La operacion fallo, lo intentamos de nuevo", "buffer")
-                print("La operacion fallo, lo intentamos de nuevo")
-                insert(self,
-                       "T1DaemonId",
-                       self.id,
-                       self.id,
-                       event.parametros,
-                       event.prioridad,
-                       event.operacion,
-                       event.nodo_objetivo
-                       )
-
+            self.buffer[0].report_from_t1daemon(self, event)
         if event.name == "STORE":
-            # Viene de invokeTask de T1Daemon, le pide hacer esta operacion porque fue elegido por el oraculo.
-            print("tengo que hacer un store! Mando mensaje de confirmacion a t1 daemon, o no", event.source_element_id)
-            add_result(self, event.parametros['id_copy'], '##Buffer##', "buffer")
-            add_result(self, event.parametros['id_copy'],
-                       f'Tengo que hacer un Store. Mando ensaje de confirmacion a t1Daemon {event.source_element_id}',
-                       "buffer")
-            if event.parametros["id_copy"] > 1:
-                # Creo clones
-                print("Funiona!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!?")
-                insert(self,
-                       "T3DaemonID",
-                       self.id,
-                       self.id,
-                       event.parametros,
-                       "HIGH",
-                       "STORE",
-                       buffer_id=self.buffer[0],
-                       timer=10,
-                       source_daemon=event.source_element_id,
-                       tipo_daemon="T1DaemonID"
-                       )
-            else:
-                print("Vamos a mandar confirStorage, soy el original", event.parametros["id_copy"])
-                add_result(self, event.parametros['id_copy'],
-                           'Vamos a mandar confirmStorage, soy el original', "buffer")
-                pass  # Todo: Tengo que escribir lo restante
-
-            resultados = True  # ! Variable de prueba, esto lo deberia de regresar un proceso
-            if resultados:
-                print(f'Mandamos report cocn buenos resultados {resultados}')
-                #todo: this is not a global massage
-                add_all(self, f'Mandamos report con buenos resultados {resultados}', "buffer")
-                report(self, resultados)
+            self.buffer[0].store_from_t1daemon(self, event)
 
 
-def qManager(self, event):  # QManager
+def qManager_do(self, event):  # QManager
     # Este if esta pensando en la salida de GUI. 
     # if event.parametros != None:
     #     add_result(self, event.parametros['id_copy'] , "##Proxy##")
@@ -258,30 +160,13 @@ def qManager(self, event):  # QManager
     print("Operacion", event.operacion)
 
     if event.name == "T1DaemonID":
-        add_result(self, event.parametros['id_copy'], "#QManager#", "qmanager")
         if event.operacion == "STORE":
-            # Ver diagrada Sotage process, first phase, le sigue Queue Manager & type 1
-            # execution daemon with delayed answer
-
-            print("Para el t1 DAEMON")
-            add_result(self, event.parametros['id_copy'], "Para el T1Daemon", "qmanager")
-            add_result(self, event.parametros['id_copy'], f'La prioridad es: {event.prioridad}', "qmanager")
-            print("La prioridad es :", event.prioridad)
-
-            # elementos = [1, event.nodo_objetivo, event.source, event.operacion, event.parametros]
-            elementos = {
-                'tipo_daemon': 1,
-                'nodo_objetivo': event.nodo_objetivo,
-                'source': event.source,
-                'operacion': event.operacion,
-                'parametros': event.parametros
-            }
-            encolar(self, elementos, event.prioridad)
-            print("Deberia encolar!!!!!")
-            add_result(self, event.parametros['id_copy'], "Deberia encolar", "qmanager")
+            add_result(self, event.parametros['id_copy'], "#QManager#", "qmanager")
+            self.qManager.store(self, event, 1)
 
         if event.operacion == "RETRIEVE":
             print("Ver diagrama Retrieeval process, first phase")
+            self.qManager.retrieve_t1daemon()
 
         if event.operacion == "PROCESS":
             print("Ver diagrama Storage process, last phase/second phase")
@@ -295,18 +180,7 @@ def qManager(self, event):  # QManager
     if event.name == "T3DaemonID":
         if event.operacion == "STORE":
             add_result(self, event.parametros['id_copy'], "Para el T3Daemon", "qmanager")
-            print("Para el t3 Daemon")
-            # elementos = [3, event.target, event.source, event.operacion, event.parametros]
-            elementos = {
-                'tipo_daemon': 3,
-                'nodo_objetivo': event.target,
-                'source': event.source,
-                'operacion': event.operacion,
-                'parametros': event.parametros
-            }
-            encolar(self, elementos, event.prioridad)
-            print("Debe encolar")
-            add_result(self, event.parametros['id_copy'], "Debe encolar", "qmanager")
+            self.qManager.store(self, event, 3)
 
         # ! ESTO DEBERIA DE ESTAR POR SEPARADO, PARA QUE ESTE EN CONTINUA EJECUCION SIN IMPORTAR LOS MENSAJES QUE LE
         # LLEGUEN
@@ -315,29 +189,21 @@ def qManager(self, event):  # QManager
             Por cada 3 tareas de alta prioridad se despacha 1 de prioridad Media y
             por cada 2 tareas de priorida media se despacha 1 de prioridad Baja
         '''
-    if event.parametros != None:
-        daemon_do(self, event.parametros['id_copy'])
+    if event.parametros is not None:
+        self.qManager.daemon_do(self, event.parametros['id_copy'])
     else:
-        daemon_do(self)
+        self.qManager.daemon_do(self)
 
     if event.name == "FREE":
         # TODO: A MENOS QUE TODOS ESTEN LIBRES DE NUEVO SE USA EL METODO daemon_do, de otra forma se le asigna el
-        add_all(self, '##QManager##')
-        #  que puedea hacer
-        add_all(self, f'Se libero el daemon tipo {event.operacion}. ID:{event.target_element_id}')
-        print("Se libero el daemon tipo", event.operacion, "Con Id:", event.target_element_id)
-        daemon_type = int(event.operacion) - 1
-        if not self.status_daemons[daemon_type]:
-            print("Ya hay demonios tipo", event.operacion, "disponibles")
-            self.status_daemons[daemon_type] = True
-
-            # TODO: Todos los demonios estan ocupados, entonces nada de lo de arriba se ejecuta, agregar un entra para
-            #  cuando llegue el mensaje del demonio cuando se desocupa
+        self.qManager.free(self, event)
+        # TODO: Todos los demonios estan ocupados, entonces nada de lo de arriba se ejecuta, agregar un entra para
+        #  cuando llegue el mensaje del demonio cuando se desocupa
 
 
 # T1Deamon no se activa con mensajes para forzar que se tega que esperar su ejecucion
 # Con la finalidad de cumplir con la condicion de que tiene que confirmar la conclusion de su tarea
-def t1_Daemon(self, event):
+def t1_Daemon_do(self, event):
     print("########################################################################################## DEMON 1")
     print(f'Estos son los parametros:{event.parametros}')
     add_result(self, event.parametros['id_copy'], "##T1Daemon##", "t1daemon")
@@ -358,13 +224,13 @@ def t1_Daemon(self, event):
         pass
 
 
-def t2_Daemon(self, event):
+def t2_Daemon_do(self, event):
     print("########################################################################################## DEMON 3")
     if event.name == "no me acuerdo we ":
         pass
 
 
-def t3_Daemon(self, event):
+def t3_Daemon_do(self, event):
     print("########################################################################################## DEMON 3")
     if event.name == "EXECUTE":
         print("ESTE ES EL DEMONIO TIPO 3")
@@ -411,7 +277,6 @@ def confirmStorage(self, id_file, id_copy, result):
     pass
 
 
-
 def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
     # import pathlib
     fn = pathlib.Path(__file__).parent / 'topo.txt'
@@ -425,16 +290,15 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
     # print(f'Lista fallo:{lista_fallo}')    
     # print(f'tiempo_fallo{tiempo_fallo}')
     # print(f'tiempore recuperacion{tiempo_recuperacion}')
-    if  lista_fallo.strip():
+    if lista_fallo.strip():
         lista_fallo = toList(lista_fallo, "int")
         print(f'Esta es la lista: {lista_fallo}')
     if tiempo_fallo.strip():
-        tiempo_fallo = toList(tiempo_fallo,'float')
+        tiempo_fallo = toList(tiempo_fallo, 'float')
         print(f'Estos son los tiempo de fallo {tiempo_fallo}')
     if tiempo_recuperacion.strip():
-        tiempo_recuperacion = toList(tiempo_recuperacion,'float')
+        tiempo_recuperacion = toList(tiempo_recuperacion, 'float')
         print(f'Estos son los tiempos de recuperacion {tiempo_recuperacion}')
-        
 
     # inserta un evento semilla en la agenda y arranca
     seed = Mensaje(
@@ -455,7 +319,6 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
         tiempo_recuperacion,  # tiempo_recuperacion
         0  # Port=0
     )
-
 
     experiment.init(seed)
     experiment.run()

@@ -46,8 +46,6 @@ class Simulation:
         """ arranca el motor de simulacion """
         while self.engine.isOn():
             nextevent = self.engine.returnEvent()
-            # item = self.engine.agenda.pop(1)
-            # nextevent = item[1]
             target = nextevent.target
             time = nextevent.time
             port = nextevent.port
