@@ -1,7 +1,7 @@
 from flask import render_template
 
 from . import auth
-from app.forms import FalloForm  # , ClearForm
+from app.forms import FalloForm 
 
 from Back import StorageProcessMsg, salidas
 
@@ -32,10 +32,10 @@ def inicio():
     # return render_template('index.html', **contexto)
 
 
-@auth.route('/clean')
-def clean():
-    contexto = {
-        'resultados': ['vacio']
-    }
+# @auth.route('/clean')
+# def clean():
+#     contexto = {
+#         'resultados': ['vacio']
+#     }
 
-    return render_template('index.html', **contexto)
+#     return render_template('index.html', **contexto)

@@ -4,13 +4,13 @@ import random
 import pathlib
 
 # todo: Hacer solo los import necesarios
-from .auxiliar import daemon_do, encolar, toIntList
+from .auxiliar import daemon_do, encolar, toList
 from .daemons import T1Daemon, T2Daemon, T3Daemon
 from .salidas import add_all, add_result, regresa
 from .mensajes import *
 # Del simulador
 from .simulador import Model, Simulation
-
+from .memento import ConcreteMemento, Carataker, Memento
 # Martinez Vargas Edgar Ivan
 # 2153043702
 """ BabelRemasterChachanga5000
@@ -57,6 +57,8 @@ class Aleph(Model):
 
     def __init__(self):
         super().__init__()
+        self._state = None
+        
         self.t1_daemons = list()
         [self.t1_daemons.append(T1Daemon(daemon_id)) for daemon_id in range(T1_DAEMONS)]
 
@@ -110,6 +112,12 @@ class Aleph(Model):
         if event.target_element == "t3daemon":
             t3_Daemon(self, event)
 
+    def save_state(self) -> Memento:
+        return ConcreteMemento(self._state)
+    
+    def restore(self, memento: Memento) -> None:
+        self._state = memento.get_state()
+        print(f'My estado cambio ha {self._state}')
 
 # TODO: Hacer de los clientes una clase para poder simular varios
 def Cliente(self):
@@ -122,10 +130,8 @@ def Cliente(self):
     if accion == 1:
         # Ingresa archivo, lee nombre
         destino = random.randint(2, 4)  # ID del nodo
-
         # Los parametros vienen del cliente
         parametros = ["file", "file_name"]
-
         store(self, parametros, destino)
         print(f'Mando Store al Proxy:{destino}')
         add_all(self, f'Mando Store al Proxy:{destino}')
@@ -405,27 +411,6 @@ def confirmStorage(self, id_file, id_copy, result):
     pass
 
 
-# resultado_ids = [['Copy 1'], ['Copy 2'], ['Copy 3']]
-
-# def add_result(self, id, contenido):
-#     global resultado_ids
-#     resultado_ids[id].append(f'[{self.clock}]: {contenido}')
-#     # print(f'[{self.clock}]: {contenido}')
-
-
-# def add_all(self, contenido):
-#     global resultado_ids
-#     for elemento in range(len(resultado_ids)):
-#         resultado_ids[elemento].append(
-#             f'[{self.clock}]:[ALL]: {contenido}'
-#         )
-#     # print(f'[{self.clock}]: {contenido}')
-
-
-# ----------------------------------------------------------------------------------------
-# "main()"
-# ----------------------------------------------------------------------------------------
-
 
 def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
     # import pathlib
@@ -437,11 +422,20 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
     for i in range(1, len(experiment.graph) + 1):
         m = Aleph()
         experiment.setModel(m, i)
-        
-    if lista_fallo is not None:
-        lista_fallo = toIntList(lista_fallo)
+    # print(f'Lista fallo:{lista_fallo}')    
+    # print(f'tiempo_fallo{tiempo_fallo}')
+    # print(f'tiempore recuperacion{tiempo_recuperacion}')
+    if  lista_fallo.strip():
+        lista_fallo = toList(lista_fallo, "int")
         print(f'Esta es la lista: {lista_fallo}')
+    if tiempo_fallo.strip():
+        tiempo_fallo = toList(tiempo_fallo,'float')
+        print(f'Estos son los tiempo de fallo {tiempo_fallo}')
+    if tiempo_recuperacion.strip():
+        tiempo_recuperacion = toList(tiempo_recuperacion,'float')
+        print(f'Estos son los tiempos de recuperacion {tiempo_recuperacion}')
         
+
     # inserta un evento semilla en la agenda y arranca
     seed = Mensaje(
         "DESPIERTA",  # Name

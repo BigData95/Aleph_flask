@@ -45,7 +45,7 @@ class Config(object):
 
 
 def add_result(self, id_copy, contenido, color="all"):
-    Globals.resultado_ids[id_copy][0].append(f'[{self.clock}]: {contenido}')
+    Globals.resultado_ids[id_copy][0].append(f'[{self.clock}|{self.id}]: {contenido}')
     Globals.resultado_ids[id_copy][1].append(color)
     # print(f'[{self.clock}]: {contenido}')
 
@@ -53,7 +53,7 @@ def add_result(self, id_copy, contenido, color="all"):
 def add_all(self, contenido, color="all"):
     for elemento in range(len(Globals.resultado_ids)):
         Globals.resultado_ids[elemento][0].append(
-            f'[{self.clock}]:[ALL]: {contenido}'
+            f'[{self.clock}|{self.id}]:[ALL]: {contenido}'
         )
         Globals.resultado_ids[elemento][1].append(color)
     # print(f'[{self.clock}]: {contenido}')

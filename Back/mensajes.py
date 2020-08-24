@@ -226,7 +226,7 @@ def invokeTask(self, target, operacion, parametros, daemon_id):
                 operacion,
                 "buffer",
                 "t1daemon",
-                nodo_objetivo=target, #TODO: Fix, tiene que ser el nodo regresado por el oraculo
+                nodo_objetivo=target, 
                 elem_int_rem_id=daemon_id
                 )
         print("Yo soy el nodo ", self.id)

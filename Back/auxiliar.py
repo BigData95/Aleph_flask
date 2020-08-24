@@ -189,16 +189,19 @@ def contPrioridad(self, prioridad):
         self.politica = "HIGH"
 
 
-
-def toIntList(lista):
+def toList(lista, tipo):
     """Auxiliar: Convierte un String a una lista de enteros, \
     funciona si el string esta delimitado por: , - o un espacio  """
     respuesta = list()
+    "Si se agregan delimitadores, cambiar la expresion regular en forms.py"
     delimitadores = " ", ",", "-"
     regex = '|'.join(map(re.escape, delimitadores))
     prelista = re.split(regex, lista)
     # prelista = lista.split(',')
     for elemento in prelista:
-        nuevo = int(elemento)
+        if tipo == "float":
+            nuevo = float(elemento)
+        elif tipo == "int":
+            nuevo =int(elemento)
         respuesta.append(nuevo)
     return respuesta
