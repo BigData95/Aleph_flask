@@ -166,13 +166,22 @@ class QManager:
         add_result(nodo_info, event.parametros['id_copy'], "#QManager#", "qmanager")
         add_result(nodo_info, event.parametros['id_copy'], f'La prioridad es: {event.prioridad}', "qmanager")
         print("La prioridad es :", event.prioridad)
-        elementos = {
-            'tipo_daemon': tipo_daemon,
-            'nodo_objetivo': event.nodo_objetivo,
-            'source': event.source,
-            'operacion': event.operacion,
-            'parametros': event.parametros
-        }
+        if tipo_daemon == 1:
+            elementos = {
+                'tipo_daemon': tipo_daemon,
+                'nodo_objetivo': event.nodo_objetivo,
+                'source': event.source,
+                'operacion': event.operacion,
+                'parametros': event.parametros
+            }
+        else:
+            elementos = {
+                'tipo_daemon': tipo_daemon,
+                'nodo_objetivo': event.target,
+                'source': event.source,
+                'operacion': event.operacion,
+                'parametros': event.parametros
+            }
         encolar(self, elementos, event.prioridad)
         print("Deberia encolar!!!!!")
         add_result(nodo_info, event.parametros['id_copy'], "Deberia encolar", "qmanager")
