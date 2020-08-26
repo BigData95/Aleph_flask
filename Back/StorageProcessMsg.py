@@ -12,7 +12,7 @@ from .elementos import Cliente, Proxy, Buffer, QManager
 from .mensajes import *
 # Del simulador
 from .simulador import Model, Simulation
-from .memento import ConcreteMemento, Carataker, Memento
+from .memento import ConcreteMemento, Caretaker, Memento
 
 # Martinez Vargas Edgar Ivan
 # 2153043702
@@ -60,10 +60,9 @@ class Aleph(Model):
 
     def __init__(self):
         super().__init__()
+
         self._state = None
-        self.cliente = None
-        # Cliente
-        # if self.id == 1:
+
         self.cliente = Cliente()
         self.proxy = Proxy()
         self.qManager = QManager()
@@ -86,6 +85,25 @@ class Aleph(Model):
         self.id_nodos = []  # Guarda el id del nodo que hizo la operacion de store de forma exitosa
         self.target_status = "ok"
 
+        self.caretaker_cliente = Caretaker(self.cliente)
+        self.caretaker_proxy = Caretaker(self.proxy)
+        self.caretaker_qmanager = Caretaker(self.qManager)
+
+        self.caretakers_t1daemon = list()
+        [self.caretakers_t1daemon.append(Caretaker(self.t1_daemons[daemon_id]))
+         for daemon_id in range(len(self.t1_daemons))]
+
+        self.caretakers_t2daemon = list()
+        [self.caretakers_t2daemon.append(Caretaker(self.t2_daemons[daemon_id]))
+         for daemon_id in range(len(self.t2_daemons))]
+
+        self.caretakers_t3daemon = list()
+        [self.caretakers_t3daemon.append(Caretaker(self.t3_daemons[daemon_id]))
+         for daemon_id in range(len(self.t3_daemons))]
+
+        self.caretakers_buffer = list()
+        [self.caretakers_buffer.append(Caretaker(self.buffer[buffer_id]))
+         for buffer_id in range(len(self.buffer))]
         # QManager
 
     def receive(self, event):
@@ -112,14 +130,58 @@ class Aleph(Model):
         if event.target_element == "t3daemon":
             t3_Daemon_do(self, event)
 
-    def save_state(self) -> Memento:
-        return ConcreteMemento(self._state)
 
-    def restore(self, memento: Memento) -> None:
-        self._state = memento.get_state()
-        print(f'My estado cambio ha {self._state}')
+def save_state(self):
+    # print()
+    self._state = {
+        'cliente': self.caretaker_cliente.save(),
+        'proxy': self.caretaker_proxy.save(),
+        'qmanager': self.caretaker_qmanager.save(),
+        'buffer': [
+            self.caretakers_buffer[buffer_id].save()
+            for buffer_id in range(len(self.buffer))
+        ],
+        't1_daemon': [
+            self.caretakers_t1daemon[id_daemon].save()
+            for id_daemon in range(len(self.t1_daemons))
+        ],
+        't2_daemon': [
+            self.caretakers_t2daemon[id_daemon].save()
+            for id_daemon in range(len(self.t2_daemons))
+        ],
+        't3_daemon': [
+            self.caretakers_t3daemon[id_daemon].save()
+            for id_daemon in range(len(self.t3_daemons))
+        ]
+    }
+    # TODO: agregar propiedades que faltan
+    # print('Estados:', self._state)
+    # return ConcreteMemento(self._state)
 
-    # TODO: Hacer de los clientes una clase para poder simular varios
+
+def restore(self) -> None:
+    self.caretaker_cliente.restore()
+    self.caretaker_proxy.restore()
+    self.caretaker_qmanager.restore()
+    for buffer_id in range(len(self.buffer)):
+        self.caretakers_buffer[buffer_id].restore()
+
+    for daemons in range(len(self.t1_daemons)):
+        self.caretakers_t1daemon[daemons].restore()
+    for daemons in range(len(self.t2_daemons)):
+        self.caretakers_t2daemon[daemons].restore()
+    for daemons in range(len(self.t3_daemons)):
+        self.caretakers_t3daemon[daemons].restore()
+
+    # print(f'My estado cambio ha {self._state}')
+
+
+# TODO: Hacer de los clientes una clase para poder simular varios
+
+
+# def save_t1daemons(self):
+#     for id_daemon in range(len(self.t1_daemons)):
+#         self.caretaker_t1daemons[id_daemon].save()
 
 
 def cliente_do(self):
@@ -137,7 +199,7 @@ def proxy_do(self, event):
 
 
 def buffer_do(self, event):
-    print("##Buffer##")
+    # print("##Buffer##")
     if event.source_element == "proxy":
         if event.name == "STORE":
             self.buffer[0].store_from_proxy(self, event)
@@ -153,16 +215,18 @@ def qManager_do(self, event):  # QManager
     # Este if esta pensando en la salida de GUI. 
     # if event.parametros != None:
     #     add_result(self, event.parametros['id_copy'] , "##Proxy##")
-    print("########################################################################################## QManager")
-
-    # Cualquier cosa que le llega, la encola segun su prioridad
-    print("Evento:", event.name)
-    print("Operacion", event.operacion)
+    # print("########################################################################################## QManager")
+    #
+    # # Cualquier cosa que le llega, la encola segun su prioridad
+    # print("Evento:", event.name)
+    # print("Operacion", event.operacion)
 
     if event.name == "T1DaemonID":
         if event.operacion == "STORE":
             add_result(self, event.parametros['id_copy'], "#QManager#", "qmanager")
             self.qManager.store(self, event, 1)
+            save_state(self)
+            restore(self)
 
         if event.operacion == "RETRIEVE":
             print("Ver diagrama Retrieeval process, first phase")
@@ -204,18 +268,18 @@ def qManager_do(self, event):  # QManager
 # T1Deamon no se activa con mensajes para forzar que se tega que esperar su ejecucion
 # Con la finalidad de cumplir con la condicion de que tiene que confirmar la conclusion de su tarea
 def t1_Daemon_do(self, event):
-    print("########################################################################################## DEMON 1")
-    print(f'Estos son los parametros:{event.parametros}')
+    # print("########################################################################################## DEMON 1")
+    # print(f'Estos son los parametros:{event.parametros}')
     add_result(self, event.parametros['id_copy'], "##T1Daemon##", "t1daemon")
     # Ver: Que Manager & Type 1 Execution Daemon, with delayed answer
     if event.name == "EXECUTE":
         add_result(self, event.parametros['id_copy'],
                    f'Execute desde T1Daemon {event.target_element_id}', "t1daemon")
-        print("Mando execute desde t1Daemon method", event.target_element_id)
+        # print("Mando execute desde t1Daemon method", event.target_element_id)
         self.t1_daemons[event.target_element_id].execute(self, event)
 
     if event.name == "TIMER":
-        print("Timer desde T1Daemon", event.target_element_id)
+        # print("Timer desde T1Daemon", event.target_element_id)
         add_result(self, event.parametros['id_copy'],
                    f'Timer desde T1Daemon {event.target_element_id}', "t1daemon")
         self.t1_daemons[event.target_element_id].timer(self)
@@ -225,17 +289,17 @@ def t1_Daemon_do(self, event):
 
 
 def t2_Daemon_do(self, event):
-    print("########################################################################################## DEMON 3")
+    # print("########################################################################################## DEMON 3")
     if event.name == "no me acuerdo we ":
         pass
 
 
 def t3_Daemon_do(self, event):
-    print("########################################################################################## DEMON 3")
+    # print("########################################################################################## DEMON 3")
     if event.name == "EXECUTE":
-        print("ESTE ES EL DEMONIO TIPO 3")
+        # print("ESTE ES EL DEMONIO TIPO 3")
         add_result(self, event.parametros['id_copy'], "Este es el T3Daemon: Execute", "t3daemon")
-        print(event.parametros)
+        # print(event.parametros)
         self.t3_daemons[event.target_element_id].execute(self, event)
     if event.name == "TIMER":
         # El parametro event.nodo_objetivo contiene el clone_id

@@ -28,7 +28,7 @@ def encargoDaemon(self, nodo_info, prioridad, id_daemon, id_copy):
     else:
         raise ValueError("La prioridad no se encuentra definida")
 
-    print("MANDO EXECUTE AL", id_daemon, "PRIORIDAD:", prioridad)
+    # print("MANDO EXECUTE AL", id_daemon, "PRIORIDAD:", prioridad)
     add_result(nodo_info, id_copy, f'Mando execute al {id_daemon} Prioridad: {prioridad}', "qmanager")
     # _, target_nodo, source, operacion, parametros = next_task.values()
     execute(nodo_info,
@@ -77,13 +77,13 @@ def freeDaemon(daemons_list):
 
 def encolar(self, elementos, prioridad):
     if prioridad == "HIGH":
-        print("Estoy encolado: SOY PRIORIDAD ALTA")
+        # print("Estoy encolado: SOY PRIORIDAD ALTA")
         self.queue_high.append(elementos)
     if prioridad == "MEDIUM":
-        print("Estoy encolado: SOY PRIORIDAD MEDIA")
+        # print("Estoy encolado: SOY PRIORIDAD MEDIA")
         self.queue_medium.append(elementos)
     if prioridad == "LOW":
-        print("Estoy encolado: SOY PRIORIDAD BAJA")
+        # print("Estoy encolado: SOY PRIORIDAD BAJA")
         self.queue_low.append(elementos)
 
 
@@ -179,7 +179,7 @@ def encolar(self, elementos, prioridad):
 def contPrioridad(self, prioridad):
     if prioridad == "HIGH" and self.cont_prioridad_alta > PRIORIDAD_ALTA:
         self.cont_prioridad_alta = 0
-        print("CAMBIO!!! a medium por politica")
+        # print("CAMBIO!!! a medium por politica")
         self.politica = "MEDIUM"
     elif prioridad == "MEDIUM" and self.cont_prioridad_media > PRIORIDAD_MEDIA:
         self.cont_prioridad_media = 0

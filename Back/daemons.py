@@ -1,6 +1,7 @@
 # from StorageProcessMsg import T1_TIMER_STATE
 from .mensajes import *
 from .salidas import add_result, add_all
+from .memento import ConcreteMemento, Caretaker, Memento
 
 import copy
 
@@ -13,6 +14,7 @@ T1_TIMER_STATE = 3
 
 class Daemon:
     def __init__(self, daemon_id, status="FREE"):
+        self._state = None
         self.__daemon_id = daemon_id
         self.__status_daemon = status
 
@@ -28,12 +30,23 @@ class Daemon:
     def status(self, new_status):
         self.__status_daemon = new_status
 
+    def save(self) -> ConcreteMemento:
+        # todo: Cuando se modifica el estado?
+        self._state = 'state de daemon'
+        return ConcreteMemento(self._state)
+
+    def restore(self, memento: Memento):
+        self._state = memento.get_state()
+        # todo: Igualar todos las propiedades necesarias
+
 
 # Cuidado antes los status eran status_daemon
 class T1Daemon(Daemon):
     def __init__(self, __daemon_id, __status="FREE"):
         Daemon.__init__(self, __daemon_id, __status)
+        self._state = None
         self.__nodo_objetivo = None
+        self.__status = None
         self.__operacion = None
         self.__prioridad = None
         self.__timer_state = 0
@@ -55,7 +68,7 @@ class T1Daemon(Daemon):
             self.__parametros['timer_state'] = 0
         self.__timer_state = self.__parametros['timer_state']
         # self.__timer_state = self.__parametros.get("timer_state", 0)  # Si es la segunda vez que viene
-        print("Soy t1Class y mando invoketask")
+        # print("Soy t1Class y mando invoketask")
         add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Invoketask", "t1daemon")
         parametros_envio = {
             'file': self.__parametros['file'],
@@ -73,23 +86,23 @@ class T1Daemon(Daemon):
                    {'id_copy': event.parametros['id_copy']},  # Se manda como unico parametro
                    self.daemon_id,
                    self.daemon_id)  # TODO: Agregar la variable del timer
-        print("Soy t1Class y mando timer")
+        # print("Soy t1Class y mando timer")
         add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Timer", "t1daemon")
 
     # Utililza nodo
     def timer(self, nodo_info):
         """Utiliza nodo_info para obtener la informacion del nodo donde vive, como el id y el clock """
         if self.result:
-            print("Ya llego la confirmacion, la mandamos SUCESS")
+            # print("Ya llego la confirmacion, la mandamos SUCESS")
             add_result(nodo_info, self.__parametros['id_copy'], "LLego confirmacion, mandomos SUCESS", "t1daemon")
-            print("Estos son los parametros!", self.__parametros)
+            # print("Estos son los parametros!", self.__parametros)
             self.__parametros["reported"] += 1  # Se hace desde aqui , no desde el buffer
             report(nodo_info, "SUCESS", self.daemon_id, self.__parametros)
         # TODO: NO OLVIDAR CAMBIAR RESULT A FALSE o cambiar en execute(?) esta en sucess para pruebas
         else:
             if self.__timer_state < T1_TIMER_STATE:
                 self.__parametros["timer_state"] = self.__timer_state + 1
-                print("Hago insert porque no recibi repuesta")
+                # print("Hago insert porque no recibi repuesta")
                 add_result(nodo_info, self.__parametros['id_copy'], "Hago insert pues no recibi respuesta", "t1daemon")
                 insert(nodo_info,
                        "T1DaemonID",
@@ -101,10 +114,10 @@ class T1Daemon(Daemon):
                        self.__nodo_objetivo
                        )
             else:
-                print("Debemos reportar la falla")
+                # print("Debemos reportar la falla")
                 add_result(self, self.__parametros['id_copy'], "Debemos reportar la falla", "t1daemon")
                 self.__parametros["reported"] += 1
-                print("PARAMETROS QUE ENVIO:", self.__parametros)
+                # print("PARAMETROS QUE ENVIO:", self.__parametros)
                 report(nodo_info,
                        "FAILURE",
                        self.daemon_id,
@@ -118,15 +131,36 @@ class T1Daemon(Daemon):
         self.__status = "FREE"
         mensajeDaemon(nodo_info, "FREE", self.daemon_id, "1")
 
+    def save(self) -> ConcreteMemento:
+        # todo: Cuando se modifica el estado?
+        self._state = 'state de daemon'
+        print(f"SOY T1 DAMEON ESTE ES MI STATE: {self._state}: {self.daemon_id}")
+        return ConcreteMemento(self._state)
+
+    def restore(self, memento: Memento):
+        self._state = memento.get_state()
+        # todo: Igualar todos las propiedades necesarias
+
 
 class T2Daemon(Daemon):
     def __init__(self, __daemon_id, __status="FREE"):
         super().__init__(__daemon_id, __status)
+        self._state = None
+
+    def save(self) -> ConcreteMemento:
+        # todo: Cuando se modifica el estado?
+        self._state = 'state de daemon'
+        return ConcreteMemento(self._state)
+
+    def restore(self, memento: Memento):
+        self._state = memento.get_state()
+        # todo: Igualar todos las propiedades necesarias
 
 
 class T3Daemon(Daemon):
     def __init__(self, __daemon_id):
         super().__init__(__daemon_id)
+        self._state = None
         self.__clon_id = 0
         self.__clones = list()
         self.__matar_clon = list()
@@ -137,7 +171,7 @@ class T3Daemon(Daemon):
         self.__parametros['operacion'] = event.operacion
         self.__parametros['prioridad'] = event.prioridad
         self.__parametros['nodo_objetivo'] = event.nodo_objetivo
-        print("Execute daemon 3")
+        # print("Execute daemon 3")
         add_result(nodo_info, self.__parametros['id_copy'], "Execute Daemon 3", "t3daemon")
         # print(self.__parametros)
         startTimerClone(nodo_info,
@@ -149,7 +183,7 @@ class T3Daemon(Daemon):
         self.__clon_id += 1
 
     def timer(self, nodo_info, nodo_id):
-        print("Timer de T3Daemon")
+        # print("Timer de T3Daemon")
         add_result(nodo_info, self.__parametros['id_copy'], "Timer de T3Daemon", "t3daemon")
         if not nodo_id in self.__matar_clon:
             # Para t1Daemon
@@ -159,7 +193,7 @@ class T3Daemon(Daemon):
                 'id_copy': self.__parametros['id_copy'],
                 'reported': 0
             }
-            print("Mando insert")
+            # print("Mando insert")
             add_result(nodo_info, self.__parametros['id_copy'], "Mando insert", "t3daemon")
             insert(nodo_info,
                    self.__parametros['tipo_daemon'],
@@ -172,7 +206,7 @@ class T3Daemon(Daemon):
                    nodo_objetivo=self.__parametros['nodo_objetivo']
                    )
         else:
-            print("Este clon ya se mato, por ordenenes de arriba")
+            # print("Este clon ya se mato, por ordenenes de arriba")
             add_result(self, self.__parametros['id_copy'], "Este clon ya se mato,por ordenes de arriba", "t3daemon")
 
     def kill(self, clone_ID):
@@ -183,3 +217,12 @@ class T3Daemon(Daemon):
         else:
             pass
             # todo: throw exception.
+
+    def save(self) -> ConcreteMemento:
+        # todo: Cuando se modifica el estado?
+        self._state = 'state de daemon'
+        return ConcreteMemento(self._state)
+
+    def restore(self, memento: Memento):
+        self._state = memento.get_state()
+        # todo: Igualar todos las propiedades necesarias
