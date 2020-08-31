@@ -60,6 +60,10 @@ class Aleph(Model):
 
     def __init__(self):
         super().__init__()
+        # def init(self):
+        self.tiempo_fallo = None
+        self.tiempo_recuperacion = None
+        self.estoy_vivo = True
 
         self._state = None
 
@@ -68,19 +72,20 @@ class Aleph(Model):
         self.qManager = QManager()
 
         self.buffer = list()
-        [self.buffer.append(Buffer(buffer_id)) for buffer_id in range(Config.BUFFERS)]
+        for buffer_id in range(Config.BUFFERS):
+            self.buffer.append(Buffer(buffer_id))
 
         self.t1_daemons = list()
-        [self.t1_daemons.append(T1Daemon(daemon_id)) for daemon_id in range(Config.T1_DAEMONS)]
+        for daemon_id in range(Config.T1_DAEMONS):
+            self.t1_daemons.append(T1Daemon(daemon_id))
 
         self.t2_daemons = list()
-        [self.t2_daemons.append(T2Daemon(daemon_id)) for daemon_id in range(Config.T2_DAEMONS)]
+        for daemon_id in range(Config.T2_DAEMONS):
+            self.t2_daemons.append(T2Daemon(daemon_id))
 
         self.t3_daemons = list()
-        [self.t3_daemons.append(T3Daemon(daemon_id)) for daemon_id in range(Config.T3_DAEMONS)]
-
-        # self.buffer = list()
-        # [self.buffer.append(buffer_id) for buffer_id in range(BUFFERS)]
+        for daemon_id in range(Config.T3_DAEMONS):
+            self.t3_daemons.append(T3Daemon(daemon_id))
 
         self.id_nodos = []  # Guarda el id del nodo que hizo la operacion de store de forma exitosa
         self.target_status = "ok"
@@ -108,27 +113,48 @@ class Aleph(Model):
 
     def receive(self, event):
         """ Funciona como interfaz, manda los mensajes a los elementos del sistema que corresponda. """
+        if event.name == "AVISO_FALLO":
+            print(event.lista_fallo)
+            if self.id in event.lista_fallo:
+                #Programa 
+                indexes = [i for i, x in enumerate(event.lista_fallo) if x == self.id]
+                for i in indexes:
+                    newevent = Mensaje("FALLO", self.clock+event.tiempo_fallo[i],self.id, self.id)
+                    self.transmit(newevent)
+                    # newevent2 = Mensaje("RECUPERA", self.clock+event.tiempo_recuperacion[i], self.id, self.id)
+                    # self.transmit(newevent2)
+                print("Los indices son" + str(indexes)) 
 
-        if event.name == "DESPIERTA":
-            cliente_do(self)
+        if event.name == "FALLO":
+            save_state(self) #snapshot
+            self.estoy_vivo = False
 
-        if event.target_element == "proxy":
-            proxy_do(self, event)
+        if self.estoy_vivo:
+            if event.name == "DESPIERTA":
+                cliente_do(self)
 
-        if event.target_element == "buffer":
-            buffer_do(self, event)
+            if event.target_element == "proxy":
+                proxy_do(self, event)
 
-        if event.target_element == "qmanager":
-            qManager_do(self, event)
+            if event.target_element == "buffer":
+                buffer_do(self, event)
 
-        if event.target_element == "t1daemon":
-            t1_Daemon_do(self, event)
+            if event.target_element == "qmanager":
+                qManager_do(self, event)
 
-        if event.target_element == "t2daemon":
-            t2_Daemon_do(self, event)
+            if event.target_element == "t1daemon":
+                t1_Daemon_do(self, event)
 
-        if event.target_element == "t3daemon":
-            t3_Daemon_do(self, event)
+            if event.target_element == "t2daemon":
+                t2_Daemon_do(self, event)
+
+            if event.target_element == "t3daemon":
+                t3_Daemon_do(self, event)
+        else:
+            if event.name == "RECUPERA":
+                self.estoy_vivo = True
+                restore(self)
+                #todo:restore state
 
 
 def save_state(self):
@@ -154,6 +180,7 @@ def save_state(self):
             for id_daemon in range(len(self.t3_daemons))
         ]
     }
+    # TODO: Quiza no necesite guardar los caretaker.save en self._state
     # TODO: agregar propiedades que faltan
     # print('Estados:', self._state)
     # return ConcreteMemento(self._state)
@@ -176,14 +203,6 @@ def restore(self) -> None:
     # print(f'My estado cambio ha {self._state}')
 
 
-# TODO: Hacer de los clientes una clase para poder simular varios
-
-
-# def save_t1daemons(self):
-#     for id_daemon in range(len(self.t1_daemons)):
-#         self.caretaker_t1daemons[id_daemon].save()
-
-
 def cliente_do(self):
     print("Que tipo de accion quieres realizar \n1)Store\n2)Retrieve\n")
     accion = 1
@@ -200,6 +219,7 @@ def proxy_do(self, event):
 
 def buffer_do(self, event):
     # print("##Buffer##")
+    print('Soy el nodo:', self.id)
     if event.source_element == "proxy":
         if event.name == "STORE":
             self.buffer[0].store_from_proxy(self, event)
@@ -225,8 +245,6 @@ def qManager_do(self, event):  # QManager
         if event.operacion == "STORE":
             add_result(self, event.parametros['id_copy'], "#QManager#", "qmanager")
             self.qManager.store(self, event, 1)
-            save_state(self)
-            restore(self)
 
         if event.operacion == "RETRIEVE":
             print("Ver diagrama Retrieeval process, first phase")
@@ -265,8 +283,6 @@ def qManager_do(self, event):  # QManager
         #  cuando llegue el mensaje del demonio cuando se desocupa
 
 
-# T1Deamon no se activa con mensajes para forzar que se tega que esperar su ejecucion
-# Con la finalidad de cumplir con la condicion de que tiene que confirmar la conclusion de su tarea
 def t1_Daemon_do(self, event):
     # print("########################################################################################## DEMON 1")
     # print(f'Estos son los parametros:{event.parametros}')
@@ -285,6 +301,8 @@ def t1_Daemon_do(self, event):
         self.t1_daemons[event.target_element_id].timer(self)
 
     if event.name == "CONFIRM":
+        add_result(self, event.parametros['id_copy'] , "Llega resultados de operacion")
+        self.t1_daemons[event.target_element_id].confirm(self)
         pass
 
 
@@ -313,7 +331,6 @@ def invokeOracle():
     return random.randint(5, 8)
 
 
-# skipcq: PYL-W0613
 def generateNewName(file_name):
     return id(file_name)
 
@@ -329,7 +346,7 @@ def report(self, results):
 
 
 def update():
-    print("Hago update")
+    # print("Hago update")
     pass
 
 
@@ -342,18 +359,13 @@ def confirmStorage(self, id_file, id_copy, result):
 
 
 def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
-    # import pathlib
     fn = pathlib.Path(__file__).parent / 'topo.txt'
-
     experiment = Simulation(fn, 500)
-
     # asocia un pareja proceso/modelo con cada nodo de la grafica
     for i in range(1, len(experiment.graph) + 1):
         m = Aleph()
         experiment.setModel(m, i)
-    # print(f'Lista fallo:{lista_fallo}')    
-    # print(f'tiempo_fallo{tiempo_fallo}')
-    # print(f'tiempore recuperacion{tiempo_recuperacion}')
+
     if lista_fallo.strip():
         lista_fallo = toList(lista_fallo, "int")
         print(f'Esta es la lista: {lista_fallo}')
@@ -366,25 +378,35 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
 
     # inserta un evento semilla en la agenda y arranca
     seed = Mensaje(
-        "DESPIERTA",  # Name
-        "",  # operacion
-        0.0,  # Time
+        "DESPIERTA",
+        0.0,  # Tiempo
         1,  # Target
         1,  # Source
-        None,  # elemento_interno_objetivo
-        None,  # elemento_interno_remitente
-        None,  # elem_int_obj_id
-        None,  # elem_int_rem_id
-        None,  # parametros
-        None,  # prioridad
-        None,  # nodo_objetivo
-        lista_fallo,  # lista_fallo
-        tiempo_fallo,  # tiempo_fallo
-        tiempo_recuperacion,  # tiempo_recuperacion
-        0  # Port=0
+        lista_fallo=lista_fallo,
+        tiempo_fallo=tiempo_fallo,
+        tiempo_recuperacion=tiempo_recuperacion
     )
-
     experiment.init(seed)
+    # print(f'Numero nodos: {experiment.numero_nodos}')
+    if lista_fallo.strip():
+        seed_all(experiment, 
+                experiment.numero_nodos, 
+                "AVISO_FALLO", 
+                lista_fallo, 
+                tiempo_fallo, 
+                tiempo_recuperacion)
     experiment.run()
 
     return regresa()
+
+
+def seed_all(experiment: Simulation, numero_nodos: int, mensaje: str, 
+            lista_fallo: list, tiempo_fallo: list, tiempo_recuperacion: list):
+    for nodo in range(1,numero_nodos+1):
+        if nodo in lista_fallo:
+            print(f"Inside seed {lista_fallo}")
+            seed = Mensaje(mensaje, 0.0, nodo, nodo, 
+                        lista_fallo=lista_fallo, 
+                        tiempo_fallo=tiempo_fallo, 
+                        tiempo_recuperacion=tiempo_recuperacion)
+            experiment.init(seed)

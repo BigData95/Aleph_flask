@@ -56,40 +56,36 @@ class T1Daemon(Daemon):
     # @staticmethod
     def execute(self, nodo_info, event):
         if nodo_info.target_status == "suspected":
-            return "FAILURE SUSPITION"
-        # Target is supposed to be ok
-        # self.result = False
-        self.__status = "BUSY"
-        self.__parametros = event.parametros
-        self.__nodo_objetivo = event.nodo_objetivo
-        self.__operacion = event.operacion
-        self.__prioridad = event.prioridad
-        if not 'timer_state' in self.__parametros:
-            self.__parametros['timer_state'] = 0
-        self.__timer_state = self.__parametros['timer_state']
-        # self.__timer_state = self.__parametros.get("timer_state", 0)  # Si es la segunda vez que viene
-        # print("Soy t1Class y mando invoketask")
-        add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Invoketask", "t1daemon")
-        parametros_envio = {
-            'file': self.__parametros['file'],
-            'id_file': self.__parametros['id_file'],
-            'id_copy': self.__parametros['id_copy']
-        }
-        invokeTask(nodo_info,
-                   self.__nodo_objetivo,
-                   self.__operacion,
-                   parametros_envio,
-                   self.daemon_id
-                   )
-        # Se manda el id_copy solo para poder imprimir en GUI
-        startTimer(nodo_info,
-                   {'id_copy': event.parametros['id_copy']},  # Se manda como unico parametro
-                   self.daemon_id,
-                   self.daemon_id)  # TODO: Agregar la variable del timer
-        # print("Soy t1Class y mando timer")
-        add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Timer", "t1daemon")
+            report(self, "FAILURE", self.__daemon_id)  
+        else:# Target is supposed to be ok
+            # self.result = False
+            self.__status = "BUSY"
+            self.__parametros = event.parametros
+            self.__nodo_objetivo = event.nodo_objetivo
+            self.__operacion = event.operacion
+            self.__prioridad = event.prioridad
+            if not 'timer_state' in self.__parametros:
+                self.__parametros['timer_state'] = 0
+            self.__timer_state = self.__parametros['timer_state']
+            add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Invoketask", "t1daemon")
+            parametros_envio = {
+                'file': self.__parametros['file'],
+                'id_file': self.__parametros['id_file'],
+                'id_copy': self.__parametros['id_copy']
+            }
+            invokeTask(nodo_info,
+                    self.__nodo_objetivo,
+                    self.__operacion,  
+                    parametros_envio,
+                    self.daemon_id
+                    )
+            startTimer(nodo_info,
+                    {'id_copy': event.parametros['id_copy']},  # Para poder imprimir en GUI 
+                    self.daemon_id,
+                    self.daemon_id)  # TODO: Agregar la variable del timer
+            add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Timer", "t1daemon")
 
-    # Utililza nodo
+
     def timer(self, nodo_info):
         """Utiliza nodo_info para obtener la informacion del nodo donde vive, como el id y el clock """
         if self.result:
@@ -131,6 +127,11 @@ class T1Daemon(Daemon):
         self.__status = "FREE"
         mensajeDaemon(nodo_info, "FREE", self.daemon_id, "1")
 
+
+    def confirm(self, nodo_info):
+        print("Confirmacion")
+        pass
+
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
         self._state = 'state de daemon'
@@ -158,7 +159,7 @@ class T2Daemon(Daemon):
 
 
 class T3Daemon(Daemon):
-    def __init__(self, __daemon_id):
+    def __init__(self, __daemon_id, __status='FREE'):
         super().__init__(__daemon_id)
         self._state = None
         self.__clon_id = 0

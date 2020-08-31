@@ -2,10 +2,11 @@
 """ Cada objeto de la clase Process representa la entidad activa que reside en
 un nodo de la grafica de comunicaciones """
 
+
 # ----------------------------------------------------------------------------------------
 
 
-class Process:                   # Descendiente de la clase "object" (default)
+class Process:  # Descendiente de la clase "object" (default)
     """ Atributos: "neighbors", "engine", "id", "model",
     contiene tambien un constructor y los metodos "setModel()", 
     "transmit()" y "receive()" 	"""
@@ -32,10 +33,11 @@ class Process:                   # Descendiente de la clase "object" (default)
     def transmit(self, event):
         """ invoca al motor para insertar un evento en su agenda """
         self.engine.insertEvent(event)
-#        print "transmite mensaje"
+
+    #        print "transmite mensaje"
 
     def receive(self, event, port=0):
         """ consulta a su modelo para decidir la atencion de un evento """
-#        self.model.setTime(event.getTime())
+        #        self.model.setTime(event.getTime())
         model = self.models[port]
         model.receive(event)

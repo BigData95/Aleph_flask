@@ -4,7 +4,7 @@ Esta por separado para evitar importes circulares. No puede importar ningun modu
 """
 
 
-class Globals(object):
+class Globals:
     """Proporciona la variable global que se utilizara para mandar al contexto de la GUI
     y la manipulacion de la variable se definen mas abajo"""
     resultado_ids = [
@@ -14,10 +14,13 @@ class Globals(object):
     ]
 
 
-class Config(object):
+class Config:
     """Constantes necesarias para el algoritmo, si se quiere modificar el comportamiento
         aqui se modifican la constantes necesarias. 
     """
+    # Tiempo en el que se mandan los mensajes: self.clock+TIME
+    TIME = 1
+
     # Numero de intentos de insert si el resultado de este fue FAILURE_SUSPICION
     MAX_FAILURES = 1
 

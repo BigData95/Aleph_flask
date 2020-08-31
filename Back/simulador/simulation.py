@@ -6,17 +6,18 @@ from .process import Process
 from .simulator import Simulator
 # ----------------------------------------------------------------------------------------
 
-
-# Descendiente de la clase "object" (default)
+import re  # <-- Libreria
 class Simulation:
     """ Atributos: "engine", "graph", "table", contiene tambien un
     constructor y los metodos "setModel()", "init()", "run()" """
 
-    def __init__(self,filename, maxtime):
+    def __init__(self, filename, maxtime):
+        lineas_vacias = re.compile('\n')
         """ construye su motor de simulacion, la grafica de comunicaciones y
         la tabla de procesos """
-        self.engine = Simulator(maxtime)
+        self.__numero_nodos = 0  # <-- Contador
 
+        self.engine = Simulator(maxtime)
         f = open(filename)
         lines = f.readlines()
         f.close()
@@ -24,9 +25,11 @@ class Simulation:
         for line in lines:
             fields = line.split()
             neighbors = []
-            for f in fields:
-                neighbors.append(int(f))
-            self.graph.append(neighbors)
+            if not lineas_vacias.match(line): #<-- Revisa
+                self.__numero_nodos += 1   # <-- Aumenta contador
+                for f in fields:
+                    neighbors.append(int(f))
+                self.graph.append(neighbors)
 
         self.table = [[]]          # la entrada 0 se deja vacia
         for i, row in enumerate(self.graph):
@@ -52,3 +55,9 @@ class Simulation:
             nextprocess = self.table[target]
             nextprocess.setTime(time, port)
             nextprocess.receive(nextevent, port)
+
+
+    # <-- Aceder a property
+    @property
+    def numero_nodos(self): 
+        return self.__numero_nodos

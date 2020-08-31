@@ -1,6 +1,7 @@
 from .simulador.event import Event
 from .salidas import add_result, add_all
 
+
 class Mensaje(Event):
     """ Modifica la clase Event para agregar mas parametros necesarios para el algoritmo
 
@@ -18,25 +19,24 @@ class Mensaje(Event):
         port:
         """
 
-    # Operacion se refiere a la operacion que haran los demons
-    # name es el nombre del metodo segun el diagrama
     def __init__(self,
                  name,
-                 operacion,
                  time,
                  target,
                  source,
-                 elemento_interno_objetivo,
-                 elemento_interno_remitente,
-                 elem_int_obj_id,
-                 elem_int_rem_id,
-                 parametros,
-                 prioridad,
-                 nodo_objetivo,
-                 lista_fallo,
-                 tiempo_fallo,
-                 tiempo_recuperacion,
-                 port=0):
+                 parametros=None,
+                 operacion=None,
+                 elemento_interno_objetivo=None,
+                 elemento_interno_remitente=None,
+                 elem_int_obj_id=None,
+                 elem_int_rem_id=None,
+                 nodo_objetivo=None,
+                 prioridad=None,
+                 lista_fallo=None,
+                 tiempo_fallo=None,
+                 tiempo_recuperacion=None,
+                 puerto=0
+                 ):
         Event.__init__(self, name, time, target, source, port=0)
         # self.__puerto = port
         self.__operacion = operacion
@@ -119,19 +119,17 @@ def mensaje(self,
             mensaje(self,name,target,source,parametros,nodo_objetivo=2,operacion="STORE") es incorrecto.
     """
     newevent = Mensaje(name,
-                       operacion,
                        self.clock + 1.0,
                        target,
                        source,
+                       parametros,
+                       operacion,
                        elemento_interno_objetivo,
                        elemento_interno_remitente,
                        elem_int_obj_id,
                        elem_int_rem_id,
-                       parametros,
-                       prioridad,
                        nodo_objetivo,
-                       -1, -1, -1,  # ! CORRESPONDE A LA LISTA DE FALLOS
-                       puerto
+                       prioridad,
                        )
     self.transmit(newevent)
 
@@ -181,17 +179,14 @@ def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_
 def startTimer(self, id_copy, internal_target, internal_source, timer_value=1):
     # No confundir con el metodo "mensaje", en ese metodo no puedes manipular el tiempo en el que se manda.
     newEvent = Mensaje("TIMER",
-                       "",
                        self.clock + timer_value,
                        self.id,
                        self.id,
-                       "t1daemon",
-                       "t1daemon",
-                       internal_target,
-                       internal_source,
-                       id_copy,
-                       None, None,
-                       None, None, None,  # ! CORRESPONDE A LA LISTA DE FALLOS
+                       id_copy,  # parametros
+                       elemento_interno_objetivo="t1daemon",
+                       elemento_interno_remitente="t1daemon",
+                       elem_int_obj_id=internal_target,
+                       elem_int_rem_id=internal_source,
                        )  # port=0
     # Parametros: --> [newFileName, IdCopia,[result,reported],state]
     self.transmit(newEvent)
@@ -199,18 +194,15 @@ def startTimer(self, id_copy, internal_target, internal_source, timer_value=1):
 
 def startTimerClone(self, timer_value, tipo_daemon, clone_id, daemon_id):
     newEvent = Mensaje("TIMER",
-                       tipo_daemon,
                        self.clock + timer_value,
                        self.id,
                        self.id,
+                       clone_id,  # Parametro
+                       tipo_daemon,  # Operacion
                        "t3daemon",
                        "t3daemon",
                        daemon_id,
                        daemon_id,
-                       None,
-                       clone_id,
-                       None,
-                       None, None, None,  # ! CORRESPONDE A LA LISTA DE FALLOS
                        )
     self.transmit(newEvent)
 
@@ -226,7 +218,7 @@ def invokeTask(self, target, operacion, parametros, daemon_id):
                 operacion,
                 "buffer",
                 "t1daemon",
-                nodo_objetivo=target, 
+                nodo_objetivo=target,
                 elem_int_rem_id=daemon_id
                 )
         # print("Yo soy el nodo ", self.id)
@@ -304,25 +296,20 @@ def store(self, parametros, target):
 
 # TODO:Tiene que ser para todos los daemons, no solo t1daemon
 def mensajeDaemon(self, name, daemon_id, tipo_daemon):
-    newevent = Mensaje(name,
-                       tipo_daemon,
-                       self.clock + 1.0,
-                       self.id,
-                       self.id,
-                       "qmanager",
-                       "t1daemon",
-                       daemon_id,
-                       None,
-                       None,
-                       None,
-                       None,
-                       None, None, None,  # ! CORRESPONDE A LA LISTA DE FALLOS
-                       )
-    self.transmit(newevent)
+    mensaje(self,
+            name,
+            self.id,
+            self.id,
+            None,
+            tipo_daemon,  # operacion
+            "qmanager",
+            "t1daemon",
+            elem_int_obj_id=daemon_id,  # elem_int_obj_id
+            )
 
 
 # TODO: Esta escrtio para t1Daemon, quiza se deba tomar en cuenta los demas
-def report(self, result, daemon_id, parameters, prioridad=None, operacion=None, nodo_objetivo=None):
+def report(self, result, daemon_id, parameters=None, prioridad=None, operacion=None, nodo_objetivo=None):
     if result == "FAILURE":
         mensaje(self,
                 "REPORT",
@@ -347,3 +334,38 @@ def report(self, result, daemon_id, parameters, prioridad=None, operacion=None, 
                 "t1daemon",
                 elem_int_rem_id=daemon_id
                 )
+
+
+def confirmStorage(self, resultado, destino, destino_interno, daemon_id, id_file, id_copy=None):
+    # todo: No hace falta separacion por ifs, quiza id_copy pueda quedar None cuando se le manda al proxy
+    if destino_interno == "t1daemon":
+        mensaje(self,
+                "CONFIRM",
+                destino,  # id del nodo
+                self.id,
+                {'id_file':id_file, 'id_copy':id_copy},  # parametros
+                resultado,
+                elemento_interno_objetivo="t1daemon",
+                elem_int_obj_id=daemon_id
+                )
+    if destino_interno == "proxy":
+        mensaje(self,
+                "CONFIRM",
+                destino,
+                self.id,
+                id_file,
+                resultado,
+                elemento_interno_objetivo="proxy",
+                elem_int_rem_id=daemon_id
+                )
+
+
+# def report(self, resultado, target, source, source_interno, daemon_id):
+#     mensaje(self,
+#             resultado,
+#             target,
+#             source,
+#             parametros=None,
+#             elemento_interno_remiten=source_interno,
+#             elem_int_rem_id=daemon_id
+#             )

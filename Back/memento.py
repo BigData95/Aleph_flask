@@ -42,7 +42,8 @@ class Caretaker:
         self._mementos.append(self._originator.save())
 
     def restore(self):
-        if not len(self._mementos):
+        length_mementos = len(self._mementos)
+        if not length_mementos:
             return
         memento = self._mementos.pop()
         print(f'Carataker: Restoring state to: {memento.get_name()}')

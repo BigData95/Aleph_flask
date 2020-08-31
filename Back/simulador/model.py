@@ -36,7 +36,7 @@ class Model(metaclass=ABCMeta):
         """ invoca el metodo de transmision de su entidad activa (proceso) """
         self.process.transmit(event)
 
-    
+    # @abstractmethod
     def init(self):
         """ Que se inicializa? eso se define en la aplicacion """
         pass

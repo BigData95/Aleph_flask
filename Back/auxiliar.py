@@ -198,6 +198,7 @@ def toList(lista, tipo):
     regex = '|'.join(map(re.escape, delimitadores))
     prelista = re.split(regex, lista)
     # prelista = lista.split(',')
+    # nuevo = ""
     for elemento in prelista:
         if tipo == "float":
             nuevo = float(elemento)
@@ -215,7 +216,7 @@ def generateNewName(file_name):
     return id(file_name)
 
 
-def confirmStorage(self, id_file, id_copy, result):
+def confirmStorage2(self, id_file, id_copy, result):
     # TODO: DEBE DE TENER UN CONTADOR PARA CADA IDFILE DISTINTO, CUANDO LLEGUE RESULTADOS\
     #   LOS ANOTA EN UN CONTADOR, CUANDO EL CONTADOR ESTE  LISTO, CONFIRMA A CLIENTAPP
     print("Confirmo que ya esta guardado")
@@ -228,4 +229,3 @@ def invokeOracle():
     # ! Numeros magicos!!!!!
     # TODO:Segun topo.txt del nodo 5 al 8 son nodos encargados de almacenar
     return random.randint(5, 8)
-

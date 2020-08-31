@@ -1,11 +1,11 @@
 import random
 from .salidas import add_all, add_result, Config
 from .memento import ConcreteMemento, Caretaker, Memento
-from .mensajes import store, insert, report
+from .mensajes import store, insert, report, confirmStorage
 from .auxiliar import (
     generateNewName,
     update,
-    confirmStorage,
+    confirmStorage2,
     invokeOracle,
     encolar,
     getIndexPositions,
@@ -112,7 +112,7 @@ class Buffer:
         if event.operacion == "SUCESS" or event.parametros["reported"] >= Config.MAX_FAILURES:
             add_result(nodo_info, event.parametros["id_copy"], f"Operacion exito {event.operacion}", "buffer")
             # print(f"Operacion exito {event.operacion}")
-            confirmStorage(nodo_info, event.parametros["id_file"], event.parametros["id_copy"], event.name)
+            confirmStorage2(nodo_info, event.parametros["id_file"], event.parametros["id_copy"], event.name)
             update()  # TODO: Update, actualiza la lista del buffer segun IDFILE e idCopy
         else:  # Fue failure o reported < MAX_FAILURES (NO ESTOY SEGURO LOL)
             # if event.parametros["reported"] < MAX_FAILURES: Tomar en cuenta que si la operacion es FAILURE
@@ -140,8 +140,7 @@ class Buffer:
                    f'Tengo que hacer un Store. Mando ensaje de confirmacion a t1Daemon {event.source_element_id}',
                    "buffer")
         if event.parametros["id_copy"] > 1:
-            # Creo clones
-            print("Funiona!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!?")
+            add_result(nodo_info, event.parametros['id_copy'],"Mando instruccion para crear clon")
             insert(nodo_info,
                    "T3DaemonID",
                    nodo_info.id,
@@ -155,10 +154,16 @@ class Buffer:
                    tipo_daemon="T1DaemonID"
                    )
         else:
-            print("Vamos a mandar confirStorage, soy el original", event.parametros["id_copy"])
             add_result(nodo_info, event.parametros['id_copy'],
                        'Vamos a mandar confirmStorage, soy el original', "buffer")
-            pass  # Todo: Tengo que escribir lo restante
+            print(f'Estos son los parametros del buffer {event.parametros}')
+            confirmStorage(nodo_info, 
+                           "SUCESS", 
+                           event.source,
+                           "t1daemon", 
+                           event.source_element_id, # Lo regreso a quien me lo mando
+                           event.parametros['id_file'], 
+                           event.parametros["id_copy"])
 
         resultados = True  # ! Variable de prueba, esto lo deberia de regresar un proceso
         if resultados:
@@ -204,7 +209,7 @@ class QManager:
                 'operacion': event.operacion,
                 'parametros': event.parametros
             }
-        else:
+        else: # tipo daemon 2
             elementos = {
                 'tipo_daemon': tipo_daemon,
                 'nodo_objetivo': event.target,

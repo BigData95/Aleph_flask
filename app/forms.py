@@ -5,7 +5,7 @@ from wtforms.fields import (
                             BooleanField,
                             StringField
                             )
-from wtforms.validators import ValidationError, Regexp, DataRequired
+from wtforms.validators import ValidationError, DataRequired
 
 import re
 
@@ -48,8 +48,8 @@ def listas_enteros(form, field):
 def lista_decimales(form, field):
     messege = "Introduce solo numeros decimales."
     error_decimal = "Error en los decimales."
-    decimales = re.compile('([0-9]*\.?[0-9]+-*,* *)|([1-9]+[0-9]*-*,* *)*')
-    bad_decimal = re.compile('\d*\.+\d*\.|[a-zA-Z]')
+    decimales = re.compile(r'([0-9]*\.?[0-9]+-*,* *)|([1-9]+[0-9]*-*,* *)*')
+    bad_decimal = re.compile(r'\d*\.+\d*\.|[a-zA-Z]')
     if decimales.match(field.data):
         if bad_decimal.search(field.data):
             raise ValidationError(error_decimal)
