@@ -129,7 +129,7 @@ def mensaje(self,
                        elem_int_obj_id,
                        elem_int_rem_id,
                        nodo_objetivo,
-                       prioridad,
+                       prioridad
                        )
     self.transmit(newevent)
 
@@ -176,33 +176,34 @@ def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_
                 )
 
 
-def startTimer(self, id_copy, internal_target, internal_source, timer_value=1):
+#Timer de t1Daemon
+def startTimer(self, parametros, daemon_id, timer_value=1):
     # No confundir con el metodo "mensaje", en ese metodo no puedes manipular el tiempo en el que se manda.
     newEvent = Mensaje("TIMER",
                        self.clock + timer_value,
                        self.id,
                        self.id,
-                       id_copy,  # parametros
+                       parametros,  # parametros
                        elemento_interno_objetivo="t1daemon",
                        elemento_interno_remitente="t1daemon",
-                       elem_int_obj_id=internal_target,
-                       elem_int_rem_id=internal_source,
-                       )  # port=0
+                       elem_int_obj_id=daemon_id,
+                       elem_int_rem_id=daemon_id
+                       )
     # Parametros: --> [newFileName, IdCopia,[result,reported],state]
     self.transmit(newEvent)
 
 
-def startTimerClone(self, timer_value, tipo_daemon, clone_id, daemon_id):
-    newEvent = Mensaje("TIMER",
-                       self.clock + timer_value,
+def startTimerClone(self, timer_value, operacion, parametros, daemon_id):
+    newEvent = Mensaje("TIMER_CLONE",
+                       self.clock + 1,
                        self.id,
                        self.id,
-                       clone_id,  # Parametro
-                       tipo_daemon,  # Operacion
+                       parametros,
+                       operacion,  # Operacion
                        "t3daemon",
                        "t3daemon",
                        daemon_id,
-                       daemon_id,
+                       daemon_id
                        )
     self.transmit(newEvent)
 
@@ -221,9 +222,7 @@ def invokeTask(self, target, operacion, parametros, daemon_id):
                 nodo_objetivo=target,
                 elem_int_rem_id=daemon_id
                 )
-        # print("Yo soy el nodo ", self.id)
         add_result(self, parametros['id_copy'], f'Soy T1 y mando a{target}', "t1daemon")
-        # print("Soy T1 y mando a ", target)
     if operacion == "ELIMINATECOPY":  # Manda al proxy
         pass
 
@@ -241,9 +240,10 @@ def insert(self,
            nodo_objetivo=None,
            timer=None,
            taskReplica=None,
-           source_daemon=None,
-           tipo_daemon=None):
+           charge_daemon=None,
+           ):
     # !TODO: Verificar antipatron, targetDeamon = daemon?, verificar uso de timer y taskReplica
+
     if daemon == "T1DaemonID":
         mensaje(self,
                 daemon,
@@ -257,7 +257,8 @@ def insert(self,
                 )
     if daemon == "T3DaemonID":
         parametros['timer'] = timer
-        parametros['tipo_daemon'] = tipo_daemon
+        parametros['charge_daemon'] = charge_daemon
+        print(f"Parametrosd {parametros}")
         mensaje(self,
                 daemon,
                 target,
@@ -266,9 +267,8 @@ def insert(self,
                 operacion,
                 "qmanager",
                 elemento_interno_remitente,
-                None,
-                prioridad,
-                source_daemon
+                nodo_objetivo,
+                prioridad
                 )
 
 
@@ -309,63 +309,31 @@ def mensajeDaemon(self, name, daemon_id, tipo_daemon):
 
 
 # TODO: Esta escrtio para t1Daemon, quiza se deba tomar en cuenta los demas
-def report(self, result, daemon_id, parameters=None, prioridad=None, operacion=None, nodo_objetivo=None):
-    if result == "FAILURE":
-        mensaje(self,
-                "REPORT",
-                self.id,
-                self.id,
-                parameters,
-                operacion,
-                "buffer",
-                "t1daemon",
-                nodo_objetivo=nodo_objetivo,
-                prioridad=prioridad,
-                elem_int_rem_id=daemon_id
-                )
-    else:  # resutl = SUCESS
-        mensaje(self,
-                "REPORT",
-                self.id,
-                self.id,
-                parameters,
-                operacion,
-                "buffer",
-                "t1daemon",
-                elem_int_rem_id=daemon_id
-                )
+def report(self, result, daemon_id, parameters, nodo_objetivo, prioridad=None, operacion=None, ):
+    mensaje(self,
+            result,
+            self.id,
+            self.id,
+            parameters,
+            operacion,
+            "buffer",
+            "t1daemon",
+            nodo_objetivo,
+            prioridad,
+            elem_int_rem_id=daemon_id,
+            )
 
 
-def confirmStorage(self, resultado, destino, destino_interno, daemon_id, id_file, id_copy=None):
-    # todo: No hace falta separacion por ifs, quiza id_copy pueda quedar None cuando se le manda al proxy
-    if destino_interno == "t1daemon":
-        mensaje(self,
-                "CONFIRM",
-                destino,  # id del nodo
-                self.id,
-                {'id_file':id_file, 'id_copy':id_copy},  # parametros
-                resultado,
-                elemento_interno_objetivo="t1daemon",
-                elem_int_obj_id=daemon_id
-                )
-    if destino_interno == "proxy":
-        mensaje(self,
-                "CONFIRM",
-                destino,
-                self.id,
-                id_file,
-                resultado,
-                elemento_interno_objetivo="proxy",
-                elem_int_rem_id=daemon_id
-                )
-
-
-# def report(self, resultado, target, source, source_interno, daemon_id):
-#     mensaje(self,
-#             resultado,
-#             target,
-#             source,
-#             parametros=None,
-#             elemento_interno_remiten=source_interno,
-#             elem_int_rem_id=daemon_id
-#             )
+def confirmStorage(self, resultado, destino, destino_interno, parametros=None, nodo_objetivo=None, daemon_id=None):
+    # ConfirmStorage siempre tiene resultado sucess, menos cuando va del buffer al proxy
+    # y cuando va desl Proxy al cliente, pues te da el resultado, hace un nuevo metodo
+    mensaje(self,
+            "CONFIRM",
+            destino,  # id del nodo
+            self.id,
+            parametros,
+            resultado,
+            elemento_interno_objetivo=destino_interno,
+            nodo_objetivo=nodo_objetivo,
+            elem_int_obj_id=daemon_id
+            )

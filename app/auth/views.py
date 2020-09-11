@@ -3,7 +3,7 @@ from flask import render_template
 from . import auth
 from app.forms import FalloForm 
 
-from Back import StorageProcessMsg, salidas
+from Back import Aleph, salidas
 
 
 @auth.route('/aleph', methods=['GET', 'POST'])
@@ -13,7 +13,7 @@ def inicio():
 
     if fallo_form.validate_on_submit():
         if not fallo_form.limpiar.data:
-            resultados = StorageProcessMsg.inicia(
+            resultados = Aleph.inicia(
                 fallo_form.nodos_fallo.data,
                 fallo_form.tiempo_fallo.data,
                 fallo_form.tiempo_recuperacion.data

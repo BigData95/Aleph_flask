@@ -1,6 +1,4 @@
-import copy
 import random
-# import sys
 import pathlib
 
 # todo: Hacer solo los import necesarios
@@ -8,59 +6,50 @@ from .auxiliar import encolar, toList
 from .daemons import T1Daemon, T2Daemon, T3Daemon
 from .salidas import add_all, add_result, regresa, Config
 from .elementos import Cliente, Proxy, Buffer, QManager
-
-from .mensajes import *
+from .mensajes import Mensaje
 # Del simulador
 from .simulador import Model, Simulation
 from .memento import ConcreteMemento, Caretaker, Memento
 
 # Martinez Vargas Edgar Ivan
 # 2153043702
-""" BabelRemasterChachanga5000
-    Sobre topo.txt:
-   El nodo 1 se considera como el nodo que hace las peticiones de serivicio (ClientApp).
+""" 
+    Aleph 
+Sobre topo.txt:
+    El nodo 1 se considera como el nodo que hace las peticiones de serivicio (ClientApp).
+    Los nodos 2,3,4 se consideran proxies, estan conectados entre si, con el cliente y con el resto de los nodos.
+    Los nodos 5,6,7,8 se consideran nodos donde se almacena la informacion. Estos no tienen comunicacion con el nodo 1.
+    IMPORTANTE!
+    Se puede cambiar esta configuracion en salidas.py en la clase Config modificando las constantes:
+        NODO_PROXY_LOWER 
+        NODO_PROXY_UPPER 
+        NODO_SERVER_LOWER 
+        NODO_SERVER_UPPER 
 
-   Los nodos 2,3,4 se consideran proxies, estan conectados entre si y con el resto de los nodos.
-   Los nodos 5,6,7,8 se consideran nodos donde se almacena la informacion. Estos no tienen comunicacion con el nodo 1.
 
-   Es importante tener en cuenta porque al momento de escribir esto, hay numeros magicos que corresponden a la funcion
-   de los nodos.
-
-   Sobre la nomenclatura:
-   Los nombres de los metodos son herencia directa de los diagramas, con el fin de facilitar la lectura del codigo y
-   el entendimiento del sistema/codigo.
+Sobre la nomenclatura:
+   Los nombres de los metodos que se usan para mandar mensajes, son herencia directa de los diagramas de secuencia, 
+   con el fin de facilitar la lectura del codigo y el entendimiento del sistema/codigo.
    Los nombres y el orden de los parametros tambien son herencia de los diagramas, en medida de lo posible.
+   
+Sobre los nodos: 
+    Cada nodo tiene distintos componentes internos : buffer, t1daemon, t2daemon, t3daemon. 
+    Para facilitar el uso, todos los nodos tambien tiene componenetes que se manejan como internos pero que realmente 
+    no lo son: cliente y proxy.
+    Por lo tanto, todos los nodos tiene por lo menos un componente: cliente, proxy, buffer, t1daemon, t2daemon, t3daemon.
+    Aunque algunos de estos componentes no se usan. Por ejemplo el nodo 1, es el unico nodo que usara el componente cliente.
    """
-
-"""Constantes del sistema  """
-MAX_FAILURES = 1  # Numero de intentos de insert si el resultado de este fue FAILURE_SUSPICION
-NUM_COPIES = 3  # Numero de copias creadas por archivo
-
-# Politicas de servicio Qmanager
-PRIORIDAD_ALTA = 7
-EJECUTA_PRIORIDAD_ALTA = 3
-EJECUTA_PRIORIDAD_MEDIA = 1
-PRIORIDAD_MEDIA = 2
-EJECUTA_PRIORIDAD_BAJA = 1
-PRIORIDAD_BAJA = 1
-
-T1_DAEMONS = 5  # Numero de dameons tipo 1
-T1_MAX_COUNT = 1  # Numero de intentos del timer t1Daemon
-
-T2_DAEMONS = 5  # Numero de daemon tipo 2
-
-# T3Daemon Solo hay 1 daemon tipo 3
-T3_DAEMONS = 1
-
-# Numero de buffers
-BUFFERS = 5
 
 
 class Aleph(Model):
+    """
+    Se encarga unicamente del manejo y pase de mensajes. Y de guardar y restaurar el estado global del sistema.
+    Cada metodo dedicado a un componente interno simplemente llama al componente a hacer alguna operacion segun
+    corresponda el mensaje que recibe.
+    """
 
     def __init__(self):
         super().__init__()
-        # def init(self):
         self.tiempo_fallo = None
         self.tiempo_recuperacion = None
         self.estoy_vivo = True
@@ -112,26 +101,32 @@ class Aleph(Model):
         # QManager
 
     def receive(self, event):
-        """ Funciona como interfaz, manda los mensajes a los elementos del sistema que corresponda. """
+        """ Funciona como interfaz, manda los mensajes a los elementos del sistema que corresponda.
+            Y maneja la simulacion del fallo con su recuperacion.
+        """
+
         if event.name == "AVISO_FALLO":
-            print(event.lista_fallo)
+            """
+            Al inicio del algoritmo se manda un mensaje a los nodos que van a fallar con la informacion necesaria para 
+            simular su fallo.
+            """
             if self.id in event.lista_fallo:
-                #Programa 
+                # Un nodo puede fallar mas de una vez, se busca en la lista.
                 indexes = [i for i, x in enumerate(event.lista_fallo) if x == self.id]
                 for i in indexes:
-                    newevent = Mensaje("FALLO", self.clock+event.tiempo_fallo[i],self.id, self.id)
+                    newevent = Mensaje("FALLO", self.clock + event.tiempo_fallo[i], self.id, self.id)
                     self.transmit(newevent)
                     # newevent2 = Mensaje("RECUPERA", self.clock+event.tiempo_recuperacion[i], self.id, self.id)
                     # self.transmit(newevent2)
-                print("Los indices son" + str(indexes)) 
 
         if event.name == "FALLO":
-            save_state(self) #snapshot
+            # Se crea el snapshot del sistema y se entra en fallo
+            save_state(self)
             self.estoy_vivo = False
 
         if self.estoy_vivo:
-            if event.name == "DESPIERTA":
-                cliente_do(self)
+            if event.name == "DESPIERTA" or event.target_element == "cliente":
+                cliente_do(self, event)
 
             if event.target_element == "proxy":
                 proxy_do(self, event)
@@ -154,11 +149,14 @@ class Aleph(Model):
             if event.name == "RECUPERA":
                 self.estoy_vivo = True
                 restore(self)
-                #todo:restore state
 
 
 def save_state(self):
-    # print()
+    """
+    Cada objeto dentro del nodo se encarga de guardar su propio estado.
+    Unicamente el objeto tiene acceso a su propio snapshot.
+    Ver documentacion sobre memento para mas informacion
+    """
     self._state = {
         'cliente': self.caretaker_cliente.save(),
         'proxy': self.caretaker_proxy.save(),
@@ -182,11 +180,13 @@ def save_state(self):
     }
     # TODO: Quiza no necesite guardar los caretaker.save en self._state
     # TODO: agregar propiedades que faltan
-    # print('Estados:', self._state)
-    # return ConcreteMemento(self._state)
 
 
 def restore(self) -> None:
+    """
+    Como solamente cada objeto tiene acceso a su memento y su propio estado,
+    cada quien se restaura por si mismo.
+    """
     self.caretaker_cliente.restore()
     self.caretaker_proxy.restore()
     self.caretaker_qmanager.restore()
@@ -200,50 +200,47 @@ def restore(self) -> None:
     for daemons in range(len(self.t3_daemons)):
         self.caretakers_t3daemon[daemons].restore()
 
-    # print(f'My estado cambio ha {self._state}')
 
-
-def cliente_do(self):
-    print("Que tipo de accion quieres realizar \n1)Store\n2)Retrieve\n")
-    accion = 1
-    if accion == 1:
-        self.cliente.store(self)
+def cliente_do(self, event):
+    if event.name == "DESPIERTA":
+        print("Que tipo de accion quieres realizar \n1)Store\n2)Retrieve\n")
+        accion = 1
+        if accion == 1:
+            self.cliente.store(self)
+    if event.name == "CONFIRM":
+        print("CONFIRM A CLIENT")
+        self.cliente.confirm(self, event)
 
 
 def proxy_do(self, event):
     if event.name == "STORE":
         self.proxy.store(self, event)
+    if event.name == "CONFIRM":
+        self.proxy.confirm(self, event)
 
     'To ask: Proxy or elsewhere,como lo decidimos '
 
 
 def buffer_do(self, event):
-    # print("##Buffer##")
-    print('Soy el nodo:', self.id)
     if event.source_element == "proxy":
         if event.name == "STORE":
             self.buffer[0].store_from_proxy(self, event)
     # TODO: QUIZA SE PUEDE GENERALIZAR REPORT PARA TODOS LOS TIPOS DE DEMONIOS
     if event.source_element == "t1daemon":
-        if event.name == "REPORT":
+        if event.name == "SUCESS" or event.name == "FAILURE":
             self.buffer[0].report_from_t1daemon(self, event)
         if event.name == "STORE":
             self.buffer[0].store_from_t1daemon(self, event)
 
 
 def qManager_do(self, event):  # QManager
-    # Este if esta pensando en la salida de GUI. 
-    # if event.parametros != None:
-    #     add_result(self, event.parametros['id_copy'] , "##Proxy##")
-    # print("########################################################################################## QManager")
-    #
-    # # Cualquier cosa que le llega, la encola segun su prioridad
-    # print("Evento:", event.name)
-    # print("Operacion", event.operacion)
-
+    """
+    Politica de Servicio:
+        Por cada 3 tareas de alta prioridad se despacha 1 de prioridad Media y
+        por cada 2 tareas de priorida media se despacha 1 de prioridad Baja
+    """
     if event.name == "T1DaemonID":
         if event.operacion == "STORE":
-            add_result(self, event.parametros['id_copy'], "#QManager#", "qmanager")
             self.qManager.store(self, event, 1)
 
         if event.operacion == "RETRIEVE":
@@ -266,11 +263,8 @@ def qManager_do(self, event):  # QManager
 
         # ! ESTO DEBERIA DE ESTAR POR SEPARADO, PARA QUE ESTE EN CONTINUA EJECUCION SIN IMPORTAR LOS MENSAJES QUE LE
         # LLEGUEN
-        '''
-        Politica de Servicio:
-            Por cada 3 tareas de alta prioridad se despacha 1 de prioridad Media y
-            por cada 2 tareas de priorida media se despacha 1 de prioridad Baja
-        '''
+
+    # Se encarga de desencolar operaciones siempre que sea posible
     if event.parametros is not None:
         self.qManager.daemon_do(self, event.parametros['id_copy'])
     else:
@@ -279,86 +273,43 @@ def qManager_do(self, event):  # QManager
     if event.name == "FREE":
         # TODO: A MENOS QUE TODOS ESTEN LIBRES DE NUEVO SE USA EL METODO daemon_do, de otra forma se le asigna el
         self.qManager.free(self, event)
-        # TODO: Todos los demonios estan ocupados, entonces nada de lo de arriba se ejecuta, agregar un entra para
-        #  cuando llegue el mensaje del demonio cuando se desocupa
 
 
 def t1_Daemon_do(self, event):
-    # print("########################################################################################## DEMON 1")
-    # print(f'Estos son los parametros:{event.parametros}')
-    add_result(self, event.parametros['id_copy'], "##T1Daemon##", "t1daemon")
+    add_result(self, event.parametros['id_copy'], f"##T1Daemon##", "t1daemon")
     # Ver: Que Manager & Type 1 Execution Daemon, with delayed answer
     if event.name == "EXECUTE":
-        add_result(self, event.parametros['id_copy'],
-                   f'Execute desde T1Daemon {event.target_element_id}', "t1daemon")
-        # print("Mando execute desde t1Daemon method", event.target_element_id)
         self.t1_daemons[event.target_element_id].execute(self, event)
 
     if event.name == "TIMER":
-        # print("Timer desde T1Daemon", event.target_element_id)
-        add_result(self, event.parametros['id_copy'],
-                   f'Timer desde T1Daemon {event.target_element_id}', "t1daemon")
-        self.t1_daemons[event.target_element_id].timer(self)
+        self.t1_daemons[event.target_element_id].timer(self, event)
 
     if event.name == "CONFIRM":
-        add_result(self, event.parametros['id_copy'] , "Llega resultados de operacion")
-        self.t1_daemons[event.target_element_id].confirm(self)
+        self.t1_daemons[event.target_element_id].confirm(self, event)
         pass
 
 
 def t2_Daemon_do(self, event):
-    # print("########################################################################################## DEMON 3")
     if event.name == "no me acuerdo we ":
         pass
 
 
 def t3_Daemon_do(self, event):
-    # print("########################################################################################## DEMON 3")
     if event.name == "EXECUTE":
-        # print("ESTE ES EL DEMONIO TIPO 3")
         add_result(self, event.parametros['id_copy'], "Este es el T3Daemon: Execute", "t3daemon")
-        # print(event.parametros)
         self.t3_daemons[event.target_element_id].execute(self, event)
-    if event.name == "TIMER":
+    if event.name == "TIMER_CLONE":
         # El parametro event.nodo_objetivo contiene el clone_id
-        self.t3_daemons[event.target_element_id].timer(self, event.nodo_objetivo)
+        self.t3_daemons[event.target_element_id].timer(self, event.nodo_objetivo, event)
 
 
-def invokeOracle():
-    # print("Oracle invocado")
-    # ! Numeros magicos!!!!!
-    # TODO:Segun topo.txt del nodo 5 al 8 son nodos encargados de almacenar
-    return random.randint(5, 8)
-
-
-def generateNewName(file_name):
-    return id(file_name)
-
-
-def waitResult(self):
-    pass
-
-
-def report(self, results):
-    print("Reporto los resultados ")
-    pass
-    # print("                 El resultado de la operacion fue: " + str(self.result))
-
-
-def update():
-    # print("Hago update")
-    pass
-
-
-def confirmStorage(self, id_file, id_copy, result):
-    # TODO: DEBE DE TENER UN CONTADOR PARA CADA IDFILE DISTINTO, CUANDO LLEGUE RESULTADOS\
-    #   LOS ANOTA EN UN CONTADOR, CUANDO EL CONTADOR ESTE  LISTO, CONFIRMA A CLIENTAPP 
-    print("Confirmo que ya esta guardado")
-    add_result(self, id_copy, "Confirmo que ya esta guardado", "buffer")
-    pass
-
-
+# Main
 def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
+    """
+    Se llama desde app/auth/views.py
+    Se hace la validacion de lista_fallo, tiempo_fallo y tiempo_recuperacion para que
+    las 3 listas esten completamente vacias o las 3 listas contengan datos.
+    """
     fn = pathlib.Path(__file__).parent / 'topo.txt'
     experiment = Simulation(fn, 500)
     # asocia un pareja proceso/modelo con cada nodo de la grafica
@@ -366,6 +317,8 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
         m = Aleph()
         experiment.setModel(m, i)
 
+    # ! No es necesrio hacer los 3 ifs porque desde el GUI se valida.
+    # Si uno esta vacia todos lo estan, si una tine cosas, las demas tambien.
     if lista_fallo.strip():
         lista_fallo = toList(lista_fallo, "int")
         print(f'Esta es la lista: {lista_fallo}')
@@ -387,26 +340,28 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
         tiempo_recuperacion=tiempo_recuperacion
     )
     experiment.init(seed)
-    # print(f'Numero nodos: {experiment.numero_nodos}')
     if lista_fallo.strip():
-        seed_all(experiment, 
-                experiment.numero_nodos, 
-                "AVISO_FALLO", 
-                lista_fallo, 
-                tiempo_fallo, 
-                tiempo_recuperacion)
+        seed_all(experiment,
+                 experiment.numero_nodos,
+                 "AVISO_FALLO",
+                 lista_fallo,
+                 tiempo_fallo,
+                 tiempo_recuperacion)
     experiment.run()
 
     return regresa()
 
 
-def seed_all(experiment: Simulation, numero_nodos: int, mensaje: str, 
-            lista_fallo: list, tiempo_fallo: list, tiempo_recuperacion: list):
-    for nodo in range(1,numero_nodos+1):
+def seed_all(experiment: Simulation, numero_nodos: int, mensaje: str,
+             lista_fallo: list, tiempo_fallo: list, tiempo_recuperacion: list):
+    """
+    Genera semillas. En este caso manda a los nodos que van a fallar la informacion que necesitan para
+    simular el fallo y la recuperacion. Si se quita el if, se puede ver como una especie de broadcast
+    """
+    for nodo in range(1, numero_nodos + 1):
         if nodo in lista_fallo:
-            print(f"Inside seed {lista_fallo}")
-            seed = Mensaje(mensaje, 0.0, nodo, nodo, 
-                        lista_fallo=lista_fallo, 
-                        tiempo_fallo=tiempo_fallo, 
-                        tiempo_recuperacion=tiempo_recuperacion)
+            seed = Mensaje(mensaje, 0.0, nodo, nodo,
+                           lista_fallo=lista_fallo,
+                           tiempo_fallo=tiempo_fallo,
+                           tiempo_recuperacion=tiempo_recuperacion)
             experiment.init(seed)

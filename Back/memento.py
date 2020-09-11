@@ -26,7 +26,7 @@ class ConcreteMemento(Memento):
         return self._state
 
     def get_name(self):
-        return f'{self._date}' #/ {self._state[0:9]}'
+        return f'{self._date}'  # / {self._state[0:9]}'
 
     def get_date(self):
         return self._date
