@@ -93,3 +93,8 @@ class Config:
 
     # Timer para t3Daemon
     CLONE_TIMER = 1
+
+
+
+    #Tamano de la UMA
+    UMA = 5

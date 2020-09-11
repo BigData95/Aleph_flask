@@ -253,8 +253,9 @@ def qManager_do(self, event):  # QManager
             print("Ver diagrama Storage process, second phase")
 
     if event.name == "T2DaemonID":
-        if event.operacion == "STORE":  # Quiza esta demas ?
-            print("Ver diagrama Storage process, second phase")
+        if event.operacion == "STORE":  #todo: Quiza esta demas ?
+            self.qManager.store(self, event, 2)
+            # print("Ver diagrama Storage process, second phase")
 
     if event.name == "T3DaemonID":
         if event.operacion == "STORE":
@@ -290,8 +291,9 @@ def t1_Daemon_do(self, event):
 
 
 def t2_Daemon_do(self, event):
-    if event.name == "no me acuerdo we ":
-        pass
+    add_result(self, event.parametros['id_copy'], "##T2Daemon", "t2daemon")
+    if event.name == "EXECUTE":
+        self.t2_daemons[event.target_element_id].execute(self, event)
 
 
 def t3_Daemon_do(self, event):

@@ -276,6 +276,22 @@ def insert(self,
                 nodo_objetivo,
                 prioridad
                 )
+    if daemon == "T2DaemonID":
+        if 'taskReplica' not in parametros:
+            parametros['taskReplica'] = taskReplica
+        mensaje(self,
+                daemon,
+                target,
+                source,
+                parametros,
+                operacion,
+                "qmanager",
+                elemento_interno_remitente,
+                nodo_objetivo,
+                prioridad,
+                elem_int_rem_id = buffer_id
+        )
+
 
 
 def store(self, parametros, target):

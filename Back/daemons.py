@@ -172,6 +172,11 @@ class T2Daemon(Daemon):
         super().__init__(__daemon_id, __status)
         self._state = None
 
+    def execute(self, nodo_info, event):
+        add_result(nodo_info, event.parametros['id_copy'],
+                   f'Execute desde T2Daemon {event.target_element_id}', "t2Daemon")
+        print("Execute de t2Daemon")
+
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
         self._state = 'state de daemon'
