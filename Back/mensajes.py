@@ -176,18 +176,21 @@ def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_
                 )
 
 
-#Timer de t1Daemon
-def startTimer(self, parametros, daemon_id, timer_value=1):
+# Timer de t1Daemon
+def startTimer(self, parametros,operacion, daemon_id, nodo_objetivo, prioridad, timer_value=1):
     # No confundir con el metodo "mensaje", en ese metodo no puedes manipular el tiempo en el que se manda.
     newEvent = Mensaje("TIMER",
                        self.clock + timer_value,
                        self.id,
                        self.id,
                        parametros,  # parametros
-                       elemento_interno_objetivo="t1daemon",
-                       elemento_interno_remitente="t1daemon",
-                       elem_int_obj_id=daemon_id,
-                       elem_int_rem_id=daemon_id
+                       operacion,
+                       "t1daemon",
+                       "t1daemon",
+                       daemon_id,
+                       daemon_id,
+                       nodo_objetivo,
+                       prioridad
                        )
     # Parametros: --> [newFileName, IdCopia,[result,reported],state]
     self.transmit(newEvent)
@@ -241,6 +244,7 @@ def insert(self,
            timer=None,
            taskReplica=None,
            charge_daemon=None,
+           daemon_id=None
            ):
     # !TODO: Verificar antipatron, targetDeamon = daemon?, verificar uso de timer y taskReplica
 
@@ -253,12 +257,14 @@ def insert(self,
                 operacion,
                 "qmanager",
                 elemento_interno_remitente,
-                nodo_objetivo, prioridad
+                nodo_objetivo,
+                prioridad,
+                daemon_id,
+                daemon_id
                 )
     if daemon == "T3DaemonID":
         parametros['timer'] = timer
         parametros['charge_daemon'] = charge_daemon
-        print(f"Parametrosd {parametros}")
         mensaje(self,
                 daemon,
                 target,
@@ -324,7 +330,8 @@ def report(self, result, daemon_id, parameters, nodo_objetivo, prioridad=None, o
             )
 
 
-def confirmStorage(self, resultado, destino, destino_interno, parametros=None, nodo_objetivo=None, daemon_id=None):
+# ConfirmStorage siempre regresa sucess
+def confirmStorage(self, operacion, destino, destino_interno, parametros=None, nodo_objetivo=None, daemon_id=None):
     # ConfirmStorage siempre tiene resultado sucess, menos cuando va del buffer al proxy
     # y cuando va desl Proxy al cliente, pues te da el resultado, hace un nuevo metodo
     mensaje(self,
@@ -332,8 +339,19 @@ def confirmStorage(self, resultado, destino, destino_interno, parametros=None, n
             destino,  # id del nodo
             self.id,
             parametros,
-            resultado,
+            operacion,
             elemento_interno_objetivo=destino_interno,
             nodo_objetivo=nodo_objetivo,
             elem_int_obj_id=daemon_id
+            )
+
+
+# Tiene un resultado: SUCESS or FAILURE
+def reportResults(self, resultado, destino, destino_interno):
+    mensaje(self,
+            resultado,
+            destino,
+            self.id,
+            None,
+            elemento_interno_objetivo=destino_interno
             )

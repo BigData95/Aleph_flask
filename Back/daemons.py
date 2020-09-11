@@ -44,18 +44,16 @@ class Daemon:
 class T1Daemon(Daemon):
     def __init__(self, daemon_id, status="FREE"):
         Daemon.__init__(self, daemon_id, status)
-        # self._state = None
+        self._state = None
         self.__status = None
-        self.__timer_state = 0
-        self.result = False  # todo: Deberia ser falso
-        self.__nodo_objetivo = None
-        self.__operacion = None
-        self.__prioridad = None
+        self.results = []  
+        self.__id_operacion = 0
+
 
     # @staticmethod
     def execute(self, nodo_info, event):
         # TODO: Documentar que tiene los parametros
-        add_result(self, event.parametros['id_copy'],
+        add_result(nodo_info, event.parametros['id_copy'],
                    f'Execute desde T1Daemon {event.target_element_id}', "t1daemon")
         if nodo_info.target_status == "suspected":
             add_result(nodo_info, event.parametros['id_file'],
@@ -68,14 +66,13 @@ class T1Daemon(Daemon):
                    event.operacion,
                    event.nodo_objetivo)
         else:  # Target is supposed to be ok
-            # self.result = False
             self.__status = "BUSY"
             parametros = copy.copy(event.parametros)
-            self.__nodo_objetivo = event.nodo_objetivo
-            self.__operacion = event.operacion
-            self.__prioridad = event.prioridad
             if 'timer_state' not in parametros:
                 parametros['timer_state'] = 0
+                parametros['id_operacion'] = self.__id_operacion 
+                self.__id_operacion += 1
+                self.results.append('FALSE')
             # self.__timer_state = parametros['timer_state']
             add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Invoketask", "t1daemon")
             invokeTask(nodo_info,
@@ -86,7 +83,11 @@ class T1Daemon(Daemon):
                        )
             startTimer(nodo_info,
                        parametros,  # Incluye ahora timer_state
-                       self.daemon_id)  # TODO: Agregar la variable del timer
+                       event.operacion,
+                       self.daemon_id,
+                       event.nodo_objetivo,
+                       event.prioridad
+                       )  # TODO: Agregar la variable del timer
             add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Timer", "t1daemon")
 
     # Cambiar por expiringTimer()
@@ -95,7 +96,8 @@ class T1Daemon(Daemon):
         add_result(nodo_info, event.parametros['id_copy'],
                    f'Timer desde T1Daemon {event.target_element_id}', "t1daemon")
         parametros = copy.copy(event.parametros)
-        if self.result:
+        index_operacion = event.parametros["id_operacion"]
+        if self.results[index_operacion]:
             """Ya llego la confirmacion de que la tarea se completo, el daemon queda libre y se tiene que limpiar
             los atributos para futuros usos distintos a storage
             """
@@ -107,13 +109,15 @@ class T1Daemon(Daemon):
                 parametros["timer_state"] += 1
                 add_result(nodo_info, parametros['id_copy'], "Hago insert pues no recibi respuesta", "t1daemon")
                 insert(nodo_info,
-                       "t1daemon",
+                       "T1DaemonID",
                        nodo_info.id,
                        nodo_info.id,
                        parametros,
-                       self.__prioridad,
-                       self.__operacion,
-                       self.__nodo_objetivo
+                       event.prioridad,
+                       event.operacion,
+                       elemento_interno_remitente="t1daemon",
+                       nodo_objetivo=event.nodo_objetivo,
+                       daemon_id = self.daemon_id
                        )
             else:
                 add_result(nodo_info, parametros['id_copy'], "Debemos reportar la falla", "t1daemon")
@@ -122,9 +126,9 @@ class T1Daemon(Daemon):
                        "FAILURE",
                        self.daemon_id,
                        parametros,
-                       self.__nodo_objetivo,
-                       self.__prioridad,
-                       self.__operacion
+                       event.nodo_objetivo,
+                       event.prioridad,
+                       event.operacion
                        )
             # Aviso que ya estoy disponible
         self.__status = "FREE"
@@ -136,16 +140,15 @@ class T1Daemon(Daemon):
         # TODO: Se deberia de usar event porque todo lo de self esta vacio
         """
         Cuando llega una confirmacion del nodo a quien se le mando el trabajo, manda el report con SUCESS \n
-        No le importa el estado del timer. Pero con self.result le avisa al timer 
+        No le importa el estado del timer. Pero con self.results le avisa al timer 
         """
+        print(f"{self.daemon_id}:Parametros confirm {event.parametros}")
         add_result(nodo_info, event.parametros['id_copy'],
                    f"T1Daemon:{self.daemon_id}: Llego confirmacion de la operacion desde nodo:{event.source}, Mando report",
                    "t1daemon")
-        self.result = True
-        print(f"Operacion interna: {self.__operacion}")
-        print(f"Operacion de event: {event.operacion}")
-        # TODO: ELmimnar event
-        report(nodo_info, "SUCESS", self.daemon_id, event.parametros, event.nodo_objetivo, operacion=self.__operacion)
+        index_operacion = event.parametros["id_operacion"]
+        self.results[index_operacion] = True
+        report(nodo_info, "SUCESS", self.daemon_id, event.parametros, event.nodo_objetivo, operacion=event.operacion)
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?

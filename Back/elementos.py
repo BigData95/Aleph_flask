@@ -2,7 +2,7 @@ import random
 import copy
 from .salidas import add_all, add_result, Config
 from .memento import ConcreteMemento, Caretaker, Memento
-from .mensajes import store, insert, report, confirmStorage
+from .mensajes import store, insert, report, confirmStorage, reportResults
 from .auxiliar import (
     generateNewName,
     invokeOracle,
@@ -75,14 +75,16 @@ class Proxy:
                     index = self.cont_copies['id_file'].index(file)
                     self.cont_copies['copies_store'][index] += 1
                     if self.cont_copies['copies_store'][index] >= Config.CONFIRM_COPIES:
-                        confirmStorage(nodo_info, "SUCESS", nodo_info.id, "cliente")
+                        reportResults(nodo_info, "SUCESS", nodo_info.id, "cliente")
+                        #TODO: Deberia de ser reportResults 
                     break
             else:
                 self.cont_copies['id_file'].append(event.parametros['id_file'])
                 self.cont_copies['copies_store'].append(1)
                 # Realmente entra a este if solo si Config.CONFIRM_COPIES es igual a cero.
                 if self.cont_copies['copies_store'][-1] >= Config.CONFIRM_COPIES:
-                    confirmStorage(nodo_info, "SUCESS", nodo_info.id, "cliente")
+                    reportResults(nodo_info, "SUCESS", nodo_info.id, "cliente")
+                        #TODO: Deberia de ser reportResults 
             self.record['id_file'].append(event.parametros['id_file'])
             self.record['nodo_id'].append(event.nodo_objetivo)
 
@@ -155,7 +157,7 @@ class Buffer:
                 add_result(nodo_info, event.parametros["id_copy"], f"Operacion {event.operacion} exitosa", "buffer")
             else:  # event.parametros["reported"] > Config.MAX_FAILURES
                 add_result(nodo_info, event.parametros["id_copy"], f"Operacion {event.operacion} FAILURE", "buffer")
-            confirmStorage(nodo_info, event.name, nodo_info.id, "proxy", event.parametros, event.nodo_objetivo)
+            confirmStorage(nodo_info, event.operacion, nodo_info.id, "proxy", event.parametros, event.nodo_objetivo)
             # update()  # TODO: Update, actualiza la lista del buffer segun IDFILE e idCopy
 
     def store_from_t1daemon(self, nodo_info, event):
@@ -163,13 +165,13 @@ class Buffer:
         #TODO: Store solo viene de t1Daemon, es redundate
         add_result(nodo_info, event.parametros['id_copy'], '##Buffer##', "buffer")
         add_result(nodo_info, event.parametros['id_copy'],
-                   f'Tengo que hacer un Store a peticion de T1Daemon: {event.source_element_id} del nodo {event.source}',
+                   f'Tengo que hacer un {event.operacion} a peticion de T1Daemon: {event.source_element_id} del nodo {event.source}',
                    "buffer")
 
         if event.parametros['id_copy'] == 0:
             add_result(nodo_info, event.parametros['id_copy'], f"Ya esta guardado en el buffer, no hay riesgo de que se pierda.", "buffer")
             confirmStorage(nodo_info,
-                "COMPLETED",
+                event.operacion,
                 event.source,
                 "t1daemon",
                 event.parametros,
@@ -233,7 +235,8 @@ class QManager:
                 'nodo_objetivo': event.nodo_objetivo,
                 'source': event.source,
                 'operacion': event.operacion,
-                'parametros': event.parametros
+                'parametros': event.parametros,
+                'id_daemon_objetivo': event.target_element_id
             }
         else:  # tipo daemon 2
             elementos = {
