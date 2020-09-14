@@ -232,6 +232,14 @@ def buffer_do(self, event):
         if event.name == "STORE":
             self.buffer[0].store_from_t1daemon(self, event)
 
+    if event.source_element == "t2daemon":
+        if event.name == "STORE":
+            print(f"{self.id} InvokeTask: {event.source_element_id}")
+            self.buffer[0].store_from_t2daemon(self, event)
+
+        if event.name == "CONFIRM":
+            self.buffer[event.source_element_id].confirm(self, event)
+
 
 def qManager_do(self, event):  # QManager
     """
@@ -253,7 +261,7 @@ def qManager_do(self, event):  # QManager
             print("Ver diagrama Storage process, second phase")
 
     if event.name == "T2DaemonID":
-        if event.operacion == "STORE":  #todo: Quiza esta demas ?
+        if event.operacion == "STORE":  # todo: Quiza esta demas ?
             self.qManager.store(self, event, 2)
             # print("Ver diagrama Storage process, second phase")
 
@@ -294,6 +302,9 @@ def t2_Daemon_do(self, event):
     add_result(self, event.parametros['id_copy'], "##T2Daemon", "t2daemon")
     if event.name == "EXECUTE":
         self.t2_daemons[event.target_element_id].execute(self, event)
+    if event.name == "CONFIRM":
+        print(f"{event.target_element_id} , source: {event.source}")
+        self.t2_daemons[event.target_element_id].confirm(self, event)
 
 
 def t3_Daemon_do(self, event):

@@ -35,7 +35,8 @@ def encargoDaemon(self, nodo_info, prioridad, id_daemon, id_copy):
             next_task['parametros'],
             prioridad,
             id_daemon,
-            next_task['tipo_daemon']
+            next_task['tipo_daemon'],
+            next_task['id_daemon_objetivo']
             )
 
 

@@ -3,7 +3,7 @@ import math
 import copy
 from .salidas import add_all, add_result, Config
 from .memento import ConcreteMemento, Caretaker, Memento
-from .mensajes import store, insert, report, confirmStorage, reportResults
+from .mensajes import store, insert, report, confirmStorage,  confirmReport
 from .auxiliar import (
     generateNewName,
     invokeOracle,
@@ -32,7 +32,8 @@ class Cliente:
     def retrive(self):
         pass
 
-    def confirm(self, nodo_info, event):
+    @staticmethod
+    def confirm(nodo_info, event):
         add_all(nodo_info, f"LLego la confirmacion de mi storage", "cliente")
         print("llego la confirmacion al cliente! Cool")
 
@@ -76,7 +77,7 @@ class Proxy:
                     index = self.cont_copies['id_file'].index(file)
                     self.cont_copies['copies_store'][index] += 1
                     if self.cont_copies['copies_store'][index] >= Config.CONFIRM_COPIES:
-                        reportResults(nodo_info, "SUCESS", nodo_info.id, "cliente")
+                        confirmReport(nodo_info, "SUCESS", nodo_info.id, "cliente")
                         # TODO: Deberia de ser reportResults
                     break
             else:
@@ -84,7 +85,7 @@ class Proxy:
                 self.cont_copies['copies_store'].append(1)
                 # Realmente entra a este if solo si Config.CONFIRM_COPIES es igual a cero.
                 if self.cont_copies['copies_store'][-1] >= Config.CONFIRM_COPIES:
-                    reportResults(nodo_info, "SUCESS", nodo_info.id, "cliente")
+                    confirmReport(nodo_info, "SUCESS", nodo_info.id, "cliente")
                     # TODO: Deberia de ser reportResults
             self.record['id_file'].append(event.parametros['id_file'])
             self.record['nodo_id'].append(event.nodo_objetivo)
@@ -159,13 +160,22 @@ class Buffer:
                 add_result(nodo_info, event.parametros["id_copy"], f"Operacion {event.operacion} exitosa", "buffer")
             else:  # event.parametros["reported"] > Config.MAX_FAILURES
                 add_result(nodo_info, event.parametros["id_copy"], f"Operacion {event.operacion} FAILURE", "buffer")
-            confirmStorage(nodo_info, event.operacion, nodo_info.id, "proxy", event.parametros, event.nodo_objetivo)
+            event.parametros['resultado'] = "SUCESS"
+            # confirmStorage(nodo_info, event.operacion, nodo_info.id, "proxy", event.parametros, event.nodo_objetivo)
+            confirmReport(nodo_info, event.name, nodo_info.id, "proxy", event.parametros, event.nodo_objetivo)
             # update()  # TODO: Update, actualiza la lista del buffer segun IDFILE e idCopy
+
+    @staticmethod
+    def confirm(nodo_info, event):
+        add_result(nodo_info, event.parametros['id_copy'], "##Buffer##", "buffer")
+        if event.source_element == 't2daemon':
+            add_result(nodo_info, event.parametros['id_copy'], "Llego resultado de la dispersion", "buffer")
+            print(f"{nodo_info.id}:LLega el resultado de la dispersion, siempre sera sucess")
 
     def store_from_t1daemon(self, nodo_info, event):
         clone = 0
         # TODO: Store solo viene de t1Daemon, es redundate
-        add_result(nodo_info, event.parametros['id_copy'], '##Buffer##', "buffer")
+        add_result(nodo_info, event.parametros['id_copy'], f'##Buffer##', "buffer")
         add_result(nodo_info, event.parametros['id_copy'],
                    f'Tengo que hacer un {event.operacion} a peticion de T1Daemon: {event.source_element_id} del nodo {event.source}',
                    "buffer")
@@ -191,6 +201,8 @@ class Buffer:
             add_result(nodo_info, event.parametros['id_copy'], "Mando instruccion para crear clon", "buffer")
             parametros = copy.copy(event.parametros)
             parametros['new_id_copy'] = 1
+            # Porque si no se elimina, lo tomaria como si ya lo hubiera iniciado un t1Daemmon, dentro de si mismo.
+            del (parametros['timer_state'])
             insert(nodo_info,
                    "T3DaemonID",
                    nodo_info.id,
@@ -198,11 +210,18 @@ class Buffer:
                    parametros,
                    "HIGH",
                    "STORE",
-                   buffer_id=self.buffer_id,
+                   elemento_interno_id=self.buffer_id,
                    nodo_objetivo=nodo_info.id,  # Nodo objetivo, soy yo mismo. El oraculo me escogio
                    timer=Config.CLONE_TIMER,
                    charge_daemon="t1daemon"
                    )
+    
+    @staticmethod
+    def store_from_t2daemon(nodo_info, event):
+        print(f"Se hace Store, mando confirmacion, va para el t2daemon: {event.source_element_id}")
+        confirmStorage(nodo_info, event.name, event.source, "t2daemon",
+                       event.parametros, daemon_id=event.source_element_id)
+        
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
@@ -215,8 +234,7 @@ class Buffer:
 
     def process(self, nodo_info, event):
         # File size is ramdom, for now. #TODO: maybe not randomize
-        file_size = random.randint(1, 10)
-        print(f"file_size {file_size}")
+        file_size = 5  # random.randint(1, 10)
         if file_size > Config.UMA:
             cortar = file_size / Config.UMA
             fragmentos = [file_size / cortar for _ in range(int(math.ceil(cortar)))]
@@ -231,11 +249,11 @@ class Buffer:
                 dispersos = self.disperse(fragmento)
                 for disperso in range(len(dispersos)):
                     id_nodo = invokeOracle()
+                    print(f"Soy {nodo_info.id}. Aqui debe terminar el invokeTask {id_nodo}")
                     parametros = copy.copy(event.parametros)
                     parametros['disperso'] = "disperso"
                     parametros['disperso_id'] = id(disperso)
                     parametros["NewNumCopy"] = disperso
-                    print("Se debe hacer insert a t2Daemon")
                     insert(nodo_info,
                            "T2DaemonID",
                            nodo_info.id,
@@ -244,14 +262,14 @@ class Buffer:
                            "HIGH",
                            "STORE",
                            nodo_objetivo=id_nodo,
-                           buffer_id=self.buffer_id,
+                           elemento_interno_id=self.buffer_id,
                            taskReplica=0
                            )
                     # insert to t2daemon
 
     @staticmethod
     def disperse(fragmento):
-        return [fragmento/2, fragmento/2]
+        return [fragmento / 2, fragmento / 2]
         pass
 
 
@@ -289,7 +307,7 @@ class QManager:
                 'source': event.source,
                 'operacion': event.operacion,
                 'parametros': event.parametros,
-                'id_daemon_objetivo': event.target_element_id
+                'id_daemon_objetivo': event.source_element_id
             }
         encolar(self, elementos, event.prioridad)
         add_result(nodo_info, event.parametros['id_copy'], f"Deberia encolar deamon tipo {tipo_daemon}", "qmanager")
@@ -304,9 +322,8 @@ class QManager:
         pass
 
     def free(self, nodo_info, event):
-        add_all(nodo_info, '##QManager##')
-        #  que puedea hacer
-        add_all(nodo_info, f'Se libero el daemon tipo {event.operacion}. ID:{event.target_element_id}')
+        # add_all(nodo_info, '##QManager##')
+        # add_all(nodo_info, f'Se libero el daemon tipo {event.operacion}. ID:{event.target_element_id} de nodo {nodo_info.id}')
         daemon_type = int(event.operacion) - 1
         if not self.status_daemons[daemon_type]:
             print("Ya hay demonios tipo", event.operacion, "disponibles")
@@ -343,7 +360,8 @@ class QManager:
                                    "No hay nada en la lista de prioridad baja, cambioamos politica, vamos a alta")
                         self.politica = "HIGH"
             else:
-                add_all(nodo_info, f'No hay tareas pendientes: {self.politica}')
+                pass
+                # add_all(nodo_info, f'No hay tareas pendientes: {self.politica}')
         else:
             add_all(nodo_info, "No hay demonios disponibles")
             print("No hay demonios disponibles")
@@ -367,7 +385,7 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
                 # Quiere decir que el insert lo hizo un daemon hacia si mismo.
                 index_daemon = queue[iterador]['id_daemon_objetivo']
                 if nodo_info.t1_daemon[index_daemon].status == "FREE":
-                    encargoDaemon(self, nodo_info, prioridad, id_copy)
+                    encargoDaemon(self, nodo_info, prioridad, index_daemon, id_copy)
                     break
                 else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola
                     continue
@@ -390,7 +408,7 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
                 # Quiere decir que el insert lo hizo un daemon hacia si mismo.
                 index_daemon = queue[iterador]['id_daemon_objetivo']
                 if nodo_info.t2_daemons[index_daemon].status == "FREE":
-                    encargoDaemon(self, nodo_info, prioridad, id_copy)
+                    encargoDaemon(self, nodo_info, prioridad, index_daemon, id_copy)
                     break
                 else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola
                     continue

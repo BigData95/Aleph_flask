@@ -134,7 +134,7 @@ def mensaje(self,
     self.transmit(newevent)
 
 
-def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_id, tipo_daemon):
+def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_id, tipo_daemon, id_daemon_objetivo):
     if tipo_daemon == 1:
         mensaje(self,
                 "EXECUTE",
@@ -146,7 +146,8 @@ def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_
                 "qmanager",
                 target_nodo,
                 prioridad,
-                daemon_id
+                daemon_id,
+                id_daemon_objetivo
                 )
     if tipo_daemon == 2:
         mensaje(self,
@@ -159,7 +160,8 @@ def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_
                 "qmanager",
                 target_nodo,
                 prioridad,
-                daemon_id
+                daemon_id,
+                id_daemon_objetivo
                 )
     if tipo_daemon == 3:
         mensaje(self,
@@ -212,20 +214,19 @@ def startTimerClone(self, timer_value, operacion, parametros, daemon_id):
 
 
 # Manda T1 a nodo target
-def invokeTask(self, target, operacion, parametros, daemon_id):
-    if operacion == "STORE":
-        mensaje(self,
-                "STORE",
-                target,
-                self.id,
-                parametros,
-                operacion,
-                "buffer",
-                "t1daemon",
-                nodo_objetivo=target,
-                elem_int_rem_id=daemon_id
-                )
-        add_result(self, parametros['id_copy'], f'Soy T1 y mando a{target}', "t1daemon")
+def invokeTask(self, target, operacion, parametros, daemon_id, tipo_daemon):
+    mensaje(self,
+            "STORE",
+            target,
+            self.id,
+            parametros,
+            operacion,
+            "buffer",
+            tipo_daemon,
+            nodo_objetivo=target,
+            elem_int_rem_id=daemon_id
+            )
+    add_result(self, parametros['id_copy'], f'Soy {tipo_daemon} y mando a{target}', tipo_daemon)
     if operacion == "ELIMINATECOPY":  # Manda al proxy
         pass
 
@@ -239,7 +240,7 @@ def insert(self,
            prioridad,
            operacion,
            elemento_interno_remitente="buffer",
-           buffer_id=None,
+           elemento_interno_id=None,
            nodo_objetivo=None,
            timer=None,
            taskReplica=None,
@@ -289,7 +290,7 @@ def insert(self,
                 elemento_interno_remitente,
                 nodo_objetivo,
                 prioridad,
-                elem_int_rem_id = buffer_id
+                elem_int_rem_id=elemento_interno_id
         )
 
 
@@ -347,7 +348,8 @@ def report(self, result, daemon_id, parameters, nodo_objetivo, prioridad=None, o
 
 
 # ConfirmStorage siempre regresa sucess
-def confirmStorage(self, operacion, destino, destino_interno, parametros=None, nodo_objetivo=None, daemon_id=None):
+def confirmStorage(self, operacion, destino, destino_interno, parametros=None, nodo_objetivo=None, daemon_id=None,
+                   remitente_interno=None, remitente_interno_id=None):
     # ConfirmStorage siempre tiene resultado sucess, menos cuando va del buffer al proxy
     # y cuando va desl Proxy al cliente, pues te da el resultado, hace un nuevo metodo
     mensaje(self,
@@ -357,17 +359,33 @@ def confirmStorage(self, operacion, destino, destino_interno, parametros=None, n
             parametros,
             operacion,
             elemento_interno_objetivo=destino_interno,
+            elemento_interno_remitente=remitente_interno,
             nodo_objetivo=nodo_objetivo,
-            elem_int_obj_id=daemon_id
+            elem_int_obj_id=daemon_id,
+            elem_int_rem_id=remitente_interno_id
             )
 
 
-# Tiene un resultado: SUCESS or FAILURE
-def reportResults(self, resultado, destino, destino_interno):
+def confirmReport(self, resultado, destino, destino_interno, parametros=None, nodo_objetivo=None):
     mensaje(self,
-            resultado,
-            destino,
+            "CONFIRM",
+            destino, 
             self.id,
-            None,
-            elemento_interno_objetivo=destino_interno
+            parametros,
+            resultado,
+            destino_interno, 
+            nodo_objetivo=nodo_objetivo,
             )
+
+
+
+# # Tiene un resultado: SUCESS or FAILURE
+# def reportResults(self, resultado, destino, destino_interno):
+#     print("Si se hace el report")
+#     mensaje(self,
+#             resultado,
+#             destino,
+#             self.id,
+#             None,
+#             elemento_interno_objetivo=destino_interno
+#             )
