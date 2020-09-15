@@ -174,12 +174,13 @@ def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_
                 "qmanager",
                 target_nodo,
                 prioridad,
-                daemon_id
+                daemon_id,
+                id_daemon_objetivo
                 )
 
 
 # Timer de t1Daemon
-def startTimer(self, parametros,operacion, daemon_id, nodo_objetivo, prioridad, timer_value=1):
+def startTimer(self, parametros,operacion, daemon_id, nodo_objetivo, prioridad, tipo_daemon, timer_value=1):
     # No confundir con el metodo "mensaje", en ese metodo no puedes manipular el tiempo en el que se manda.
     newEvent = Mensaje("TIMER",
                        self.clock + timer_value,
@@ -187,8 +188,8 @@ def startTimer(self, parametros,operacion, daemon_id, nodo_objetivo, prioridad, 
                        self.id,
                        parametros,  # parametros
                        operacion,
-                       "t1daemon",
-                       "t1daemon",
+                       tipo_daemon,
+                       tipo_daemon,
                        daemon_id,
                        daemon_id,
                        nodo_objetivo,
@@ -196,6 +197,8 @@ def startTimer(self, parametros,operacion, daemon_id, nodo_objetivo, prioridad, 
                        )
     # Parametros: --> [newFileName, IdCopia,[result,reported],state]
     self.transmit(newEvent)
+
+# def startTimer2()
 
 
 def startTimerClone(self, timer_value, operacion, parametros, daemon_id):
@@ -247,7 +250,7 @@ def insert(self,
            charge_daemon=None,
            daemon_id=None
            ):
-    # !TODO: Verificar antipatron, targetDeamon = daemon?, verificar uso de timer y taskReplica
+    # !TODO: daemon_id y elemento_interno_id es lo mismo
 
     if daemon == "T1DaemonID":
         mensaje(self,
@@ -275,7 +278,9 @@ def insert(self,
                 "qmanager",
                 elemento_interno_remitente,
                 nodo_objetivo,
-                prioridad
+                prioridad,
+                daemon_id,
+                daemon_id
                 )
     if daemon == "T2DaemonID":
         if 'taskReplica' not in parametros:
@@ -290,7 +295,8 @@ def insert(self,
                 elemento_interno_remitente,
                 nodo_objetivo,
                 prioridad,
-                elem_int_rem_id=elemento_interno_id
+                daemon_id,
+                daemon_id
         )
 
 

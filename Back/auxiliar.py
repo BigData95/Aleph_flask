@@ -129,7 +129,6 @@ def generateNewName(file_name: str) -> id:
 
 def invokeOracle() -> int:
     """Auxiliar: Regresa un numero aleatorio entre 5 y 8"""
-    # print("Oracle invocado")
     # ! Numeros magicos!!!!!
     # TODO:Segun topo.txt del nodo 5 al 8 son nodos encargados de almacenar
     return random.randint(Config.NODO_SERVER_LOWER, Config.NODO_SERVER_UPPER)

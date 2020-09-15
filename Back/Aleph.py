@@ -208,7 +208,6 @@ def cliente_do(self, event):
         if accion == 1:
             self.cliente.store(self)
     if event.name == "CONFIRM":
-        print("CONFIRM A CLIENT")
         self.cliente.confirm(self, event)
 
 
@@ -234,7 +233,6 @@ def buffer_do(self, event):
 
     if event.source_element == "t2daemon":
         if event.name == "STORE":
-            print(f"{self.id} InvokeTask: {event.source_element_id}")
             self.buffer[0].store_from_t2daemon(self, event)
 
         if event.name == "CONFIRM":
@@ -276,8 +274,10 @@ def qManager_do(self, event):  # QManager
     # Se encarga de desencolar operaciones siempre que sea posible
     if event.parametros is not None:
         self.qManager.daemon_do(self, event.parametros['id_copy'])
-    else:
+    elif event.name != 'FREE':
+        print(f"FALLO:{event.name}, OPERACION: {event.operacion}, source:{ event.source}, a quien soy: {self.id}")
         self.qManager.daemon_do(self)
+
 
     if event.name == "FREE":
         # TODO: A MENOS QUE TODOS ESTEN LIBRES DE NUEVO SE USA EL METODO daemon_do, de otra forma se le asigna el
@@ -303,8 +303,9 @@ def t2_Daemon_do(self, event):
     if event.name == "EXECUTE":
         self.t2_daemons[event.target_element_id].execute(self, event)
     if event.name == "CONFIRM":
-        print(f"{event.target_element_id} , source: {event.source}")
         self.t2_daemons[event.target_element_id].confirm(self, event)
+    if event.name == "TIMER":
+        self.t2_daemons[event.target_element_id].timer(self, event)
 
 
 def t3_Daemon_do(self, event):

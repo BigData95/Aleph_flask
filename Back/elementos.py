@@ -35,7 +35,6 @@ class Cliente:
     @staticmethod
     def confirm(nodo_info, event):
         add_all(nodo_info, f"LLego la confirmacion de mi storage", "cliente")
-        print("llego la confirmacion al cliente! Cool")
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
@@ -44,7 +43,6 @@ class Cliente:
 
     def restore(self, memento: Memento):
         self._state = memento.get_state()
-        print(f'Soy cliente y mi state es {self._state}')
         # todo: Igualar todos las propiedades necesarias
 
 
@@ -97,7 +95,6 @@ class Proxy:
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
         self._state = "State de Proxy"
-        print(f'Soy proxy: {self._state}')
         return ConcreteMemento(self._state)
 
     def restore(self, memento: Memento):
@@ -170,7 +167,6 @@ class Buffer:
         add_result(nodo_info, event.parametros['id_copy'], "##Buffer##", "buffer")
         if event.source_element == 't2daemon':
             add_result(nodo_info, event.parametros['id_copy'], "Llego resultado de la dispersion", "buffer")
-            print(f"{nodo_info.id}:LLega el resultado de la dispersion, siempre sera sucess")
 
     def store_from_t1daemon(self, nodo_info, event):
         clone = 0
@@ -218,7 +214,7 @@ class Buffer:
     
     @staticmethod
     def store_from_t2daemon(nodo_info, event):
-        print(f"Se hace Store, mando confirmacion, va para el t2daemon: {event.source_element_id}")
+        add_result(nodo_info, event.parametros['id_copy'], f"Llego {event.name} de algun t2Daemon. Le mando confirmacion", "buffer")
         confirmStorage(nodo_info, event.name, event.source, "t2daemon",
                        event.parametros, daemon_id=event.source_element_id)
         
@@ -240,20 +236,18 @@ class Buffer:
             fragmentos = [file_size / cortar for _ in range(int(math.ceil(cortar)))]
         else:
             fragmentos = [file_size]
-        print(f"Fragmentos {fragmentos}")
         for fragmento in range(len(fragmentos)):
             if fragmento > Config.UMA:
-                print("Se debe hacer insert a t1Daemon")
                 pass
             else:
                 dispersos = self.disperse(fragmento)
                 for disperso in range(len(dispersos)):
                     id_nodo = invokeOracle()
-                    print(f"Soy {nodo_info.id}. Aqui debe terminar el invokeTask {id_nodo}")
                     parametros = copy.copy(event.parametros)
                     parametros['disperso'] = "disperso"
                     parametros['disperso_id'] = id(disperso)
                     parametros["NewNumCopy"] = disperso
+                    print(f"Nodo:{nodo_info.id} Se crea t2Daemon de disperso, objetivo {id_nodo}")
                     insert(nodo_info,
                            "T2DaemonID",
                            nodo_info.id,
@@ -291,24 +285,15 @@ class QManager:
     def store(self, nodo_info, event, tipo_daemon):
         add_result(nodo_info, event.parametros['id_copy'], "#QManager#", "qmanager")
         add_result(nodo_info, event.parametros['id_copy'], f'La prioridad es: {event.prioridad}', "qmanager")
-        if tipo_daemon == 1:
-            elementos = {
-                'tipo_daemon': tipo_daemon,
-                'nodo_objetivo': event.nodo_objetivo,
-                'source': event.source,
-                'operacion': event.operacion,
-                'parametros': event.parametros,
-                'id_daemon_objetivo': event.target_element_id
-            }
-        else:  # tipo daemon 2
-            elementos = {
-                'tipo_daemon': tipo_daemon,
-                'nodo_objetivo': event.target,
-                'source': event.source,
-                'operacion': event.operacion,
-                'parametros': event.parametros,
-                'id_daemon_objetivo': event.source_element_id
-            }
+        elementos = {
+            'tipo_daemon': tipo_daemon,
+            'nodo_objetivo': event.nodo_objetivo,
+            'source': event.source,
+            'operacion': event.operacion,
+            'parametros': event.parametros,
+            'id_daemon_objetivo': event.target_element_id
+        }
+        
         encolar(self, elementos, event.prioridad)
         add_result(nodo_info, event.parametros['id_copy'], f"Deberia encolar deamon tipo {tipo_daemon}", "qmanager")
 
@@ -364,7 +349,6 @@ class QManager:
                 # add_all(nodo_info, f'No hay tareas pendientes: {self.politica}')
         else:
             add_all(nodo_info, "No hay demonios disponibles")
-            print("No hay demonios disponibles")
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
