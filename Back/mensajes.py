@@ -180,7 +180,7 @@ def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_
 
 
 # Timer de t1Daemon
-def startTimer(self, parametros,operacion, daemon_id, nodo_objetivo, prioridad, tipo_daemon, timer_value=1):
+def startTimer(self, parametros, operacion, daemon_id, nodo_objetivo, prioridad, tipo_daemon, timer_value=1):
     # No confundir con el metodo "mensaje", en ese metodo no puedes manipular el tiempo en el que se manda.
     newEvent = Mensaje("TIMER",
                        self.clock + timer_value,
@@ -383,6 +383,18 @@ def confirmReport(self, resultado, destino, destino_interno, parametros=None, no
             nodo_objetivo=nodo_objetivo,
             )
 
+
+def kill_clone(self, clone_id, source_element, source_element_id):
+    mensaje(self,
+            "KILL",
+            self.id,
+            self.id,
+            clone_id,  # Como si fueran parametros
+            elemento_interno_objetivo='t3daemon',
+            elemento_interno_remitente=source_element,
+            elem_int_obj_id=0,
+            elem_int_rem_id= source_element_id
+    )
 
 
 # # Tiene un resultado: SUCESS or FAILURE

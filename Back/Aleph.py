@@ -313,8 +313,9 @@ def t3_Daemon_do(self, event):
         add_result(self, event.parametros['id_copy'], "Este es el T3Daemon: Execute", "t3daemon")
         self.t3_daemons[event.target_element_id].execute(self, event)
     if event.name == "TIMER_CLONE":
-        # El parametro event.nodo_objetivo contiene el clone_id
         self.t3_daemons[event.target_element_id].timer(self, event.nodo_objetivo, event)
+    if event.name == "KILL":
+        self.t3_daemons[event.target_element_id].kill(self, event.parametros) # Parametros es el clone id
 
 
 # Main

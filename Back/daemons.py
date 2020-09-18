@@ -4,6 +4,7 @@ from .salidas import add_result, add_all, Config
 from .memento import ConcreteMemento, Caretaker, Memento
 
 import copy
+import uuid
 
 """
 
@@ -171,37 +172,63 @@ class T2Daemon(Daemon):
         super().__init__(__daemon_id, __status)
         self._state = None
         self.results = list()
+        self.clones_pendientes = list()
         self.id_operacion = 0
 
     def execute(self, nodo_info, event):
         add_result(nodo_info, event.parametros['id_copy'],
                    f'Execute desde T2Daemon {event.target_element_id}', "t2daemon")
-        # print(f"Parametros {event.parametros}")
+        self.status = "BUSY"
         # invokeOracle() le regresa el estado del nodo segun el HBManager, aqui supondremos que siempre lo manda
-        # En este insert el taskReplica esta en los parametros
         parametros = copy.copy(event.parametros)
-        # todo: invokeTask y starttimer
         if parametros['taskReplica'] == 0:
+            # Solo entra aqui la primera vez
             parametros['taskReplica'] = 1
             parametros['id_operacion_t2daemon'] = self.id_operacion
             self.id_operacion += 1
             self.results.append('FALSE')
-            print(f"{nodo_info.clock} t2Daemon creando t3Daemon, le mando mi {self.daemon_id}")
-            insert(nodo_info, "T3DaemonID", nodo_info.id, nodo_info.id, parametros, event.prioridad, event.operacion,
+            print(f"Nodo:{nodo_info.id} t2Daemon creando t3Daemon, le mando mi {self.daemon_id}")
+            parametros['id_clone'] = uuid.uuid4()
+            self.clones_pendientes.append(parametros['id_clone'])
+            insert(nodo_info,
+                   "T3DaemonID",
+                   nodo_info.id,
+                   nodo_info.id,
+                   parametros,
+                   event.prioridad,
+                   event.operacion,
                    elemento_interno_remitente="t3daemon",
                    daemon_id=self.daemon_id,
                    nodo_objetivo=event.nodo_objetivo,
                    timer=Config.CLONE_TIMER,
                    charge_daemon="t2daemon",
                    )
-            confirmStorage(nodo_info, event.operacion, nodo_info.id, "buffer", parametros,
+            confirmStorage(nodo_info,
+                           event.operacion,
+                           nodo_info.id,
+                           "buffer",
+                           parametros,
                            event.nodo_objetivo,
-                           daemon_id=event.source_element_id,  # Realmente es buffer id
                            remitente_interno="t2daemon",
                            remitente_interno_id=self.daemon_id)
-        print(f"{nodo_info.clock} t2Daemon creando timer {self.daemon_id}")
-        invokeTask(nodo_info, event.nodo_objetivo, "STORE_DISPERSO", parametros, self.daemon_id, "t2daemon")
-        startTimer(nodo_info, parametros, event.operacion, self.daemon_id, event.nodo_objetivo, event.prioridad, "t2daemon")
+        if parametros['id_clone'] in self.clones_pendientes:
+            invokeTask(nodo_info,
+                       event.nodo_objetivo,
+                       "STORE_DISPERSO",
+                       parametros,
+                       self.daemon_id,
+                       "t2daemon")
+            startTimer(nodo_info,
+                       parametros,
+                       event.operacion,
+                       self.daemon_id,
+                       event.nodo_objetivo,
+                       event.prioridad,
+                       "t2daemon")
+        else:
+            print(
+                "Ya se habia eliminado este clon, quiza el t3 estaba en fallo cuando se le mando la intruccion de eliminar")
+            #! IMPORTANTE, COMO AUN NO ELIMINA EL CLON, PUEDE QUE SALGA MUCHO ESTO.
 
     def timer(self, nodo_info, event):
         add_result(nodo_info, event.parametros['id_copy'], "Timer T2 Daemon, se hace insert", "t2daemon")
@@ -209,12 +236,16 @@ class T2Daemon(Daemon):
         if self.results[event.parametros['id_operacion_t2daemon']]:
             add_result(nodo_info, event.parametros['id_copy'],
                        "LLego la respuesta antes de expirar el timer, tengo que matrar clon", "t2daemon")
-            print("Ya llego la respuesta, tengo que matar al clon")
-            #TODO: Mandar a matar al clone xdd
-            pass
+            print(f"Nodo:{nodo_info.id} T2Daemon {self.daemon_id}: Ya llego la respuesta, tengo que matar al clon")
+            kill_clone(nodo_info, event.parametros['id_clone'], "t2daemon", self.daemon_id)
+            try:
+                print(f"Estoy eliminando el clon {event.parametros['id_clone']}")
+                self.clones_pendientes.remove(event.parametros['id_clone'])
+            except ValueError:
+                print(f"Nodo:{nodo_info.id}. T2Daemon: {self.daemon_id}. Ya se habia eliminado este clon.")
         else:
             add_result(nodo_info, event.parametros['id_copy'], "No ha llegado la respuesta, hago insert", "t2daemon")
-            print("No ha llegado la respuesta, hago insert")
+            print(f"Nodo:{nodo_info.id} T2Daemon: No ha llegado la respuesta, hago insert")
             event.parametros['taskReplica'] += 1
             insert(nodo_info,
                    "T2DaemonID",
@@ -225,15 +256,13 @@ class T2Daemon(Daemon):
                    event.operacion,
                    elemento_interno_remitente="t2daemon",
                    nodo_objetivo=event.parametros['nodo_objetivo'],
-                   elemento_interno_id=self.daemon_id,
+                   # elemento_interno_id=self.daemon_id,
                    daemon_id=self.daemon_id
                    )
-
+        self.status = "FREE"
 
     def confirm(self, nodo_info, event):
         add_result(nodo_info, event.parametros['id_copy'], "Llego confirmacion", "t2daemon")
-
-
 
         pass
 
@@ -252,19 +281,16 @@ class T3Daemon(Daemon):
         super().__init__(__daemon_id)
         self._state = None
         self.__clones = list()
-        self.__clone_id = 0
         self.__matar_clon = list()
         # self.__parametros = None
 
     def execute(self, nodo_info, event):
         parametros = copy.copy(event.parametros)
         add_result(nodo_info, parametros['id_copy'], "Execute Daemon 3, inicio timer", "t3daemon")
-        # Create clone
-        self.__clones.append(self.__clone_id)
-        self.__clone_id += 1
+        # Create clone, ya debe de venir dentro de los parametros
+        self.__clones.append(event.parametros['id_clone'])
 
         parametros['prioridad'] = event.prioridad
-        parametros['clone_id'] = self.__clone_id
         parametros['nodo_objetivo'] = event.nodo_objetivo
         parametros['source_id'] = event.source_element_id
         startTimerClone(nodo_info,
@@ -276,14 +302,15 @@ class T3Daemon(Daemon):
 
     def timer(self, nodo_info, nodo_id, event):
         add_result(nodo_info, event.parametros['id_copy'], "Timer de T3Daemon", "t3daemon")
-        #TODO: Este if esta mal. El id del clon es parametros['clone_id], pero primero se tiene que asegurar que viene del mismo nodo
+        # TODO: Este if esta mal. El id del clon es parametros['clone_id], pero primero se tiene que asegurar que viene del mismo nodo
         if nodo_id not in self.__matar_clon:
             add_result(nodo_info, event.parametros['id_copy'], "Mando insert", "t3daemon")
             if event.parametros['charge_daemon'] == "t1daemon":
                 daemon = "T1DaemonID"
             else:  # if event.parametros['charge_daemon'] == "T2DaemonID":
                 daemon = "T2DaemonID"
-                print(f"Soy t3Daemon, creo t2daemon")
+                print(
+                    f"Nodo: {nodo_info.id}. Soy t3Daemon, creo t2daemo{event.parametros['source_id']}, no deberia estar en: {event.parametros['nodo_objetivo']}")
 
             insert(nodo_info,
                    daemon,  # event.parametros['charge_daemon'],
@@ -300,14 +327,14 @@ class T3Daemon(Daemon):
         else:
             add_result(self, event.parametros['id_copy'], "Este clon ya se mato,por ordenes de arriba", "t3daemon")
 
-    def kill(self, clone_ID):
-        # Debe llevar registro de los clones que mata para que no haga insert
-        if clone_ID in self.__clones:
-            self.__matar_clon.append(clone_ID)
-            self.__clones.remove(clone_ID)
-        else:
-            pass
-            # todo: throw exception.
+    def kill(self, nodo_info, clone_id):
+        print("Este clon se muere. Tengo vigote")
+        # if clone_id in self.__clones:
+        #     self.__matar_clon.append(clone_id)
+        #     self.__clones.remove(clone_id)
+        # else:
+        #     print("Ya se habia matado el clon, quiza el nodo estaba en falla")
+        #     pass
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?

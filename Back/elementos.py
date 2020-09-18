@@ -1,6 +1,7 @@
 import random
 import math
 import copy
+import uuid
 from .salidas import add_all, add_result, Config
 from .memento import ConcreteMemento, Caretaker, Memento
 from .mensajes import store, insert, report, confirmStorage,  confirmReport
@@ -105,6 +106,7 @@ class Proxy:
 class Buffer:
     def __init__(self, buffer_id):
         self.__buffer_id = buffer_id
+        self.clones_pendientes = list()
         self._state = None
         self.files = list()
         # self.resultados = True # ya me llegaron los resultados? ver store_from_t1daemon
@@ -199,6 +201,9 @@ class Buffer:
             parametros['new_id_copy'] = 1
             # Porque si no se elimina, lo tomaria como si ya lo hubiera iniciado un t1Daemmon, dentro de si mismo.
             del (parametros['timer_state'])
+            # Creamos el id del clon y guardamos registro de el para poder eliminarlo despues
+            parametros['id_clone'] = uuid.uuid4()
+            self.clones_pendientes.append(parametros['id_clone'])
             insert(nodo_info,
                    "T3DaemonID",
                    nodo_info.id,
@@ -255,6 +260,7 @@ class Buffer:
                            parametros,
                            "HIGH",
                            "STORE",
+                           elemento_interno_remitente="buffer",
                            nodo_objetivo=id_nodo,
                            elemento_interno_id=self.buffer_id,
                            taskReplica=0
@@ -293,6 +299,8 @@ class QManager:
             'parametros': event.parametros,
             'id_daemon_objetivo': event.target_element_id
         }
+        # if tipo_daemon == 2:
+        #     print(f"Alguno sera NOne:{event.target_element_id}")
         
         encolar(self, elementos, event.prioridad)
         add_result(nodo_info, event.parametros['id_copy'], f"Deberia encolar deamon tipo {tipo_daemon}", "qmanager")
@@ -372,6 +380,7 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
                     encargoDaemon(self, nodo_info, prioridad, index_daemon, id_copy)
                     break
                 else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola
+                    print(f"No esta disponible el T1daemon {queue[iterador]['id_daemon_objetivo']}")
                     continue
             else:
                 get_free_daemon = freeDaemon(nodo_info.t1_daemons)
@@ -395,6 +404,7 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
                     encargoDaemon(self, nodo_info, prioridad, index_daemon, id_copy)
                     break
                 else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola
+                    print(f"No esta disponible el T2daemon {queue[iterador]['id_daemon_objetivo']}")
                     continue
             else:
                 get_free_daemon = freeDaemon(nodo_info.t2_daemons)
