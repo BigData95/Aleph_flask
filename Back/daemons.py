@@ -228,7 +228,7 @@ class T2Daemon(Daemon):
         else:
             print(
                 "Ya se habia eliminado este clon, quiza el t3 estaba en fallo cuando se le mando la intruccion de eliminar")
-            #! IMPORTANTE, COMO AUN NO ELIMINA EL CLON, PUEDE QUE SALGA MUCHO ESTO.
+            # ! IMPORTANTE, COMO AUN NO ELIMINA EL CLON, PUEDE QUE SALGA MUCHO ESTO.
 
     def timer(self, nodo_info, event):
         add_result(nodo_info, event.parametros['id_copy'], "Timer T2 Daemon, se hace insert", "t2daemon")
@@ -239,7 +239,7 @@ class T2Daemon(Daemon):
             print(f"Nodo:{nodo_info.id} T2Daemon {self.daemon_id}: Ya llego la respuesta, tengo que matar al clon")
             kill_clone(nodo_info, event.parametros['id_clone'], "t2daemon", self.daemon_id)
             try:
-                print(f"Estoy eliminando el clon {event.parametros['id_clone']}")
+                print(f"T2Daemon:{self.daemon_id} Estoy eliminando el clon {event.parametros['id_clone']} de mis registros")
                 self.clones_pendientes.remove(event.parametros['id_clone'])
             except ValueError:
                 print(f"Nodo:{nodo_info.id}. T2Daemon: {self.daemon_id}. Ya se habia eliminado este clon.")
@@ -300,41 +300,41 @@ class T3Daemon(Daemon):
                         self.daemon_id
                         )
 
-    def timer(self, nodo_info, nodo_id, event):
+    def timer(self, nodo_info, event):
         add_result(nodo_info, event.parametros['id_copy'], "Timer de T3Daemon", "t3daemon")
         # TODO: Este if esta mal. El id del clon es parametros['clone_id], pero primero se tiene que asegurar que viene del mismo nodo
-        if nodo_id not in self.__matar_clon:
+        if event.parametros['id_clone'] in self.__clones:
             add_result(nodo_info, event.parametros['id_copy'], "Mando insert", "t3daemon")
             if event.parametros['charge_daemon'] == "t1daemon":
                 daemon = "T1DaemonID"
             else:  # if event.parametros['charge_daemon'] == "T2DaemonID":
                 daemon = "T2DaemonID"
-                print(
-                    f"Nodo: {nodo_info.id}. Soy t3Daemon, creo t2daemo{event.parametros['source_id']}, no deberia estar en: {event.parametros['nodo_objetivo']}")
+                print(f"Nodo: {nodo_info.id}. Soy t3Daemon, creo t2daemo{event.parametros['source_id']}, "
+                      f"no deberia estar en: {event.parametros['nodo_objetivo']}")
 
             insert(nodo_info,
                    daemon,  # event.parametros['charge_daemon'],
                    nodo_info.id,
                    nodo_info.id,
-                   event.parametros,  # parametros_envio,  # event.parametros,
+                   event.parametros,
                    event.parametros['prioridad'],
-                   event.operacion,  # event.parametros['operacion'],
+                   event.operacion,
                    elemento_interno_remitente="t3Daemon",
                    nodo_objetivo=event.parametros['nodo_objetivo'],
                    # elemento_interno_id=event.parametros['source_id'],
                    daemon_id=event.parametros['source_id']
                    )
         else:
-            add_result(self, event.parametros['id_copy'], "Este clon ya se mato,por ordenes de arriba", "t3daemon")
+            print("!!!!!Este clon ya se mato, por ordenes de arriba")
+            add_result(nodo_info, event.parametros['id_copy'], "Este clon ya se mato,por ordenes de arriba", "t3daemon")
 
-    def kill(self, nodo_info, clone_id):
-        print("Este clon se muere. Tengo vigote")
-        # if clone_id in self.__clones:
-        #     self.__matar_clon.append(clone_id)
-        #     self.__clones.remove(clone_id)
-        # else:
-        #     print("Ya se habia matado el clon, quiza el nodo estaba en falla")
-        #     pass
+    def kill(self, nodo_info, id_clone):
+        if id_clone in self.__clones:
+            print("Este clon se muere. Tengo vigote")
+            self.__clones.remove(id_clone)
+        else:
+            print(f"No esta el clon {nodo_info} que deseas eliminar, esta en otro nodo o alguien mas ya lo elimino")
+
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
