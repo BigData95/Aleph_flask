@@ -314,13 +314,9 @@ class QManager:
     def eliminate_copy(self):
         pass
 
-    def free(self, nodo_info, event):
-        # add_all(nodo_info, '##QManager##')
-        # add_all(nodo_info, f'Se libero el daemon tipo {event.operacion}. ID:{event.target_element_id} de nodo {nodo_info.id}')
-        daemon_type = int(event.operacion) - 1
-        if not self.status_daemons[daemon_type]:
-            print("Ya hay demonios tipo", event.operacion, "disponibles")
-            self.status_daemons[daemon_type] = True
+    def free(self, nodo_info, daemon_id, tipo_daemon):
+        pass
+
 
     def daemon_do(self, nodo_info, id_copy=None):
         if True in self.status_daemons:
@@ -380,7 +376,7 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
                     encargoDaemon(self, nodo_info, prioridad, index_daemon, id_copy)
                     break
                 else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola
-                    print(f"No esta disponible el T1daemon {queue[iterador]['id_daemon_objetivo']}")
+                    print(f"No esta disponible el T1daemon {queue[iterador]['id_daemon_objetivo']}, clock: {nodo_info.clock}")
                     continue
             else:
                 get_free_daemon = freeDaemon(nodo_info.t1_daemons)

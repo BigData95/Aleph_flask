@@ -92,7 +92,7 @@ class Config:
     NODO_SERVER_UPPER = 8
 
     # Timer para t3Daemon
-    CLONE_TIMER = 1
+    CLONE_TIMER = 3
 
 
 

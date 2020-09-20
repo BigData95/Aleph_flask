@@ -269,19 +269,34 @@ def insert(self,
     if daemon == "T3DaemonID":
         parametros['timer'] = timer
         parametros['charge_daemon'] = charge_daemon
-        mensaje(self,
-                daemon,
+        newevent = Mensaje(daemon,
+                self.clock + timer,
                 target,
                 source,
                 parametros,
                 operacion,
                 "qmanager",
-                elemento_interno_remitente,
-                nodo_objetivo,
-                prioridad,
+                elemento_interno_remitente, 
                 daemon_id,
-                daemon_id
-                )
+                daemon_id, 
+                nodo_objetivo,
+                prioridad
+        )
+        self.transmit(newevent)
+        
+        # mensaje(self,
+        #         daemon,
+        #         target,
+        #         source,
+        #         parametros,
+        #         operacion,
+        #         "qmanager",
+        #         elemento_interno_remitente,
+        #         nodo_objetivo,
+        #         prioridad,
+        #         daemon_id,
+        #         daemon_id
+        #         )
     if daemon == "T2DaemonID":
         if 'taskReplica' not in parametros:
             parametros['taskReplica'] = taskReplica
@@ -324,16 +339,16 @@ def store(self, parametros, target):
 
 
 # TODO:Tiene que ser para todos los daemons, no solo t1daemon
-def mensajeDaemon(self, name, daemon_id, tipo_daemon):
+def mensajeDaemon(self, name, daemon_id, tipo_operacion, tipo_daemon, id_copy):
     mensaje(self,
             name,
             self.id,
             self.id,
-            None,
-            tipo_daemon,  # operacion
+            {'id_copy':id_copy},
+            tipo_operacion,  # operacion
             "qmanager",
-            "t1daemon",
-            elem_int_obj_id=daemon_id,  # elem_int_obj_id
+            tipo_daemon,
+            elem_int_obj_id=daemon_id  # elem_int_obj_id
             )
 
 

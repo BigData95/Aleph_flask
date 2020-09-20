@@ -272,15 +272,15 @@ def qManager_do(self, event):  # QManager
         # LLEGUEN
 
     # Se encarga de desencolar operaciones siempre que sea posible
-    if event.parametros is not None:
+    if 'id_copy' in event.parametros:
         self.qManager.daemon_do(self, event.parametros['id_copy'])
     elif event.name != 'FREE':
         print(f"FALLO:{event.name}, OPERACION: {event.operacion}, source:{event.source}, a quien soy: {self.id}")
         self.qManager.daemon_do(self)
 
     if event.name == "FREE":
-        # TODO: A MENOS QUE TODOS ESTEN LIBRES DE NUEVO SE USA EL METODO daemon_do, de otra forma se le asigna el
-        self.qManager.free(self, event)
+        # TODO: Daemon do que vaya dirigido solo a ese deamon sin tener que hacer todo lo demas
+        self.qManager.daemon_do(self, event.parametros['id_copy'])
 
 
 def t1_Daemon_do(self, event):
@@ -314,7 +314,7 @@ def t3_Daemon_do(self, event):
     if event.name == "TIMER_CLONE":
         self.t3_daemons[event.target_element_id].timer(self, event)
     if event.name == "KILL":
-        self.t3_daemons[event.target_element_id].kill(self, event.parametros)  # Parametros es el clone id
+        self.t3_daemons[event.target_element_id].kill(self, event)  # Parametros es el clone id
 
 
 # Main
