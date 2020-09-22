@@ -228,12 +228,15 @@ def buffer_do(self, event):
     if event.source_element == "t1daemon":
         if event.name == "SUCESS" or event.name == "FAILURE":
             self.buffer[0].report_from_t1daemon(self, event)
-        if event.name == "STORE":
-            self.buffer[0].store_from_t1daemon(self, event)
-
+        if event.name == "TASK":
+            if event.operacion == "STORE":
+                self.buffer[0].store_from_t1daemon(self, event)
+            elif event.operacion == "PROCESS":
+                self.buffer[0].process(self, event)
     if event.source_element == "t2daemon":
-        if event.name == "STORE":
-            self.buffer[0].store_from_t2daemon(self, event)
+        if event.name == "TASK":
+            if event.operacion == "STORE_DISPERSO":
+                self.buffer[0].store_from_t2daemon(self, event)
 
         if event.name == "CONFIRM":
             self.buffer[event.source_element_id].confirm(self, event)
@@ -254,7 +257,8 @@ def qManager_do(self, event):  # QManager
             self.qManager.retrieve_t1daemon()
 
         if event.operacion == "PROCESS":
-            print("Ver diagrama Storage process, last phase/second phase")
+            self.qManager.store(self, event, 1)
+            print("###########Ver diagrama Storage process, last phase/second phase")
         if event.operacion == "ELIMINATECOPY":
             print("Ver diagrama Storage process, second phase")
 

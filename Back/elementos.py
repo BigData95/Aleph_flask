@@ -4,7 +4,7 @@ import copy
 import uuid
 from .salidas import add_all, add_result, Config
 from .memento import ConcreteMemento, Caretaker, Memento
-from .mensajes import store, insert, report, confirmStorage,  confirmReport
+from .mensajes import store, insert, report, confirmStorage, confirmReport, kill_clone
 from .auxiliar import (
     generateNewName,
     invokeOracle,
@@ -77,7 +77,6 @@ class Proxy:
                     self.cont_copies['copies_store'][index] += 1
                     if self.cont_copies['copies_store'][index] >= Config.CONFIRM_COPIES:
                         confirmReport(nodo_info, "SUCESS", nodo_info.id, "cliente")
-                        # TODO: Deberia de ser reportResults
                     break
             else:
                 self.cont_copies['id_file'].append(event.parametros['id_file'])
@@ -85,7 +84,6 @@ class Proxy:
                 # Realmente entra a este if solo si Config.CONFIRM_COPIES es igual a cero.
                 if self.cont_copies['copies_store'][-1] >= Config.CONFIRM_COPIES:
                     confirmReport(nodo_info, "SUCESS", nodo_info.id, "cliente")
-                    # TODO: Deberia de ser reportResults
             self.record['id_file'].append(event.parametros['id_file'])
             self.record['nodo_id'].append(event.nodo_objetivo)
 
@@ -107,6 +105,7 @@ class Buffer:
     def __init__(self, buffer_id):
         self.__buffer_id = buffer_id
         self.clones_pendientes = list()
+        self.operaciones_pendientes = list()
         self._state = None
         self.files = list()
         # self.resultados = True # ya me llegaron los resultados? ver store_from_t1daemon
@@ -117,7 +116,6 @@ class Buffer:
 
     @staticmethod
     def store_from_proxy(nodo_info, event):
-        # TODO: Tambien deberia funcionar para process
         file_, new_name, num_copy = event.parametros
         for copia in range(num_copy):
             id_nodo = invokeOracle()
@@ -144,7 +142,8 @@ class Buffer:
     def report_from_t1daemon(nodo_info, event):
         add_result(nodo_info, event.parametros['id_copy'], "##Buffer##", "buffer")
         if event.name == "FAILURE" and event.parametros["reported"] < Config.MAX_FAILURES:
-            add_result(nodo_info, event.parametros['id_copy'], "La operacion fallo, lo intentamos de nuevo", "buffer")
+            add_result(nodo_info, event.parametros['id_copy'],
+                       f"La operacion {event.operacion} fallo, lo intentamos de nuevo", "buffer")
             insert(nodo_info,
                    "T1DaemonId",
                    nodo_info.id,
@@ -164,15 +163,27 @@ class Buffer:
             confirmReport(nodo_info, event.name, nodo_info.id, "proxy", event.parametros, event.nodo_objetivo)
             # update()  # TODO: Update, actualiza la lista del buffer segun IDFILE e idCopy
 
-    @staticmethod
-    def confirm(nodo_info, event):
+    def confirm(self, nodo_info, event):
         add_result(nodo_info, event.parametros['id_copy'], "##Buffer##", "buffer")
         if event.source_element == 't2daemon':
             add_result(nodo_info, event.parametros['id_copy'], "Llego resultado de la dispersion", "buffer")
+            # Matamos al clon
+            if event.parametros['id_clone'] in self.clones_pendientes:
+                print("Llego el restulado de la dispersion")
+                kill_clone(nodo_info,
+                           {'id_clone': event.parametros['id_clone'], 'id_copy': event.parametros['id_copy']},
+                           "buffer",
+                           self.__buffer_id)
+                self.clones_pendientes.remove(event.parametros['id_clone'])
+            else:
+                print(f"Parametros:{event.parametros}")
+                print("Ya se habia confirmado esta dispersion")
+                print(f"CLones: {self.clones_pendientes}")
+                print()
 
+    # @staticmethod
     def store_from_t1daemon(self, nodo_info, event):
         clone = 0
-        # TODO: Store solo viene de t1Daemon, es redundate
         add_result(nodo_info, event.parametros['id_copy'], f'##Buffer##', "buffer")
         add_result(nodo_info, event.parametros['id_copy'],
                    f'Tengo que hacer un {event.operacion} a peticion de T1Daemon: {event.source_element_id} del nodo {event.source}',
@@ -216,13 +227,13 @@ class Buffer:
                    timer=Config.CLONE_TIMER,
                    charge_daemon="t1daemon"
                    )
-    
+
     @staticmethod
     def store_from_t2daemon(nodo_info, event):
-        add_result(nodo_info, event.parametros['id_copy'], f"Llego {event.name} de algun t2Daemon. Le mando confirmacion", "buffer")
+        add_result(nodo_info, event.parametros['id_copy'],
+                   f"Llego {event.name} de algun t2Daemon. Le mando confirmacion", "buffer")
         confirmStorage(nodo_info, event.name, event.source, "t2daemon",
                        event.parametros, daemon_id=event.source_element_id)
-        
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
@@ -234,16 +245,40 @@ class Buffer:
         # todo: Igualar todos las propiedades necesarias
 
     def process(self, nodo_info, event):
-        # File size is ramdom, for now. #TODO: maybe not randomize
-        file_size = 5  # random.randint(1, 10)
+        # File size is ramdom, for now.
+        # Esta procesando un fragmento o un archivo
+        contador = 0
+        if 'fragment' in event.parametros:
+            file_size = event.parametros['fragment']
+        else:
+            file_size = 5  # random.randint(1, 10)
         if file_size > Config.UMA:
-            cortar = file_size / Config.UMA
+            cortar = file_size / 2
             fragmentos = [file_size / cortar for _ in range(int(math.ceil(cortar)))]
         else:
             fragmentos = [file_size]
+        print(f"{fragmentos}")
         for fragmento in range(len(fragmentos)):
             if fragmento > Config.UMA:
-                pass
+                parametros = {
+                    'file': event.parametros['file'],
+                    'id_file': event.parametros['id_file'],
+                    'id_copy': event.parametros['id_copy'],
+                    'reported': 0,
+                    'fragment': fragmento,
+                    'fragment_name': id(fragmento),
+                    'Frag_num_copy': contador
+                }
+                contador += 1
+                id_nodo = invokeOracle()
+                insert(nodo_info,
+                       "T1DaemonID",
+                       nodo_info.id,
+                       nodo_info.id,
+                       parametros,
+                       "HIGH",
+                       "PROCESS",
+                       nodo_objetivo=id_nodo)
             else:
                 dispersos = self.disperse(fragmento)
                 for disperso in range(len(dispersos)):
@@ -252,7 +287,6 @@ class Buffer:
                     parametros['disperso'] = "disperso"
                     parametros['disperso_id'] = id(disperso)
                     parametros["NewNumCopy"] = disperso
-                    print(f"Nodo:{nodo_info.id} Se crea t2Daemon de disperso, objetivo {id_nodo}")
                     insert(nodo_info,
                            "T2DaemonID",
                            nodo_info.id,
@@ -270,7 +304,6 @@ class Buffer:
     @staticmethod
     def disperse(fragmento):
         return [fragmento / 2, fragmento / 2]
-        pass
 
 
 class QManager:
@@ -284,7 +317,6 @@ class QManager:
         self.cont_prioridad_alta = 0
         self.cont_prioridad_media = 0
         self.cont_prioridad_baja = 0
-        # self.wait_status = False
         self.politica = "HIGH"
         self.status_daemons = [True, True, True]
 
@@ -299,9 +331,6 @@ class QManager:
             'parametros': event.parametros,
             'id_daemon_objetivo': event.target_element_id
         }
-        # if tipo_daemon == 2:
-        #     print(f"Alguno sera NOne:{event.target_element_id}")
-        
         encolar(self, elementos, event.prioridad)
         add_result(nodo_info, event.parametros['id_copy'], f"Deberia encolar deamon tipo {tipo_daemon}", "qmanager")
 
@@ -317,10 +346,8 @@ class QManager:
     def free(self, nodo_info, daemon_id, tipo_daemon):
         pass
 
-
     def daemon_do(self, nodo_info, id_copy=None):
         if True in self.status_daemons:
-            # print("HAY DEMONIOS")
             despachado = False
             while (self.queue_high or self.queue_medium or self.queue_low) and not despachado:
                 free_daemons = getIndexPositions(self.status_daemons, True)
@@ -376,7 +403,8 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
                     encargoDaemon(self, nodo_info, prioridad, index_daemon, id_copy)
                     break
                 else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola
-                    print(f"No esta disponible el T1daemon {queue[iterador]['id_daemon_objetivo']}, clock: {nodo_info.clock}")
+                    print(
+                        f"No esta disponible el T1daemon {queue[iterador]['id_daemon_objetivo']}, clock: {nodo_info.clock}")
                     continue
             else:
                 get_free_daemon = freeDaemon(nodo_info.t1_daemons)
@@ -414,58 +442,12 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
                     self.status_daemons[1] = False
                     add_result(nodo_info, id_copy, "Ya no hay T2Daemons", "qmanager")
                     continue
-        elif tipo_daemon == 3 and 3:  # in free_daemons:
+        elif tipo_daemon == 3 and 3:
             # El demonio tipo 3 siempre esta disponible
-            # todo: Solo deberia de hacer referencia a un demonio tipo 3
             get_free_daemon = freeDaemon(nodo_info.t3_daemons)  # SOlo hay un demonio tipo 3
             add_result(nodo_info, id_copy, f'Se envia trabajo al T3Daemon: {get_free_daemon}', "qmanager")
             encargoDaemon(self, nodo_info, prioridad, get_free_daemon, id_copy)
             break
         contPrioridad(self, prioridad)
 
-# def prueba2(self, nodo_info, queue, free_daemons, prioridad, id_copy):
-#     for _ in range(len(queue)):
-#         tipo_daemon = queue[0]['tipo_daemon']  # Revisamos el primer elemento en la cola
-#         if tipo_daemon == 1 and 1 in free_daemons:
-#             # if queue[0]['id_daemon_objetivo'] is not None:
-#             #     # Quiere decir que el insert lo hizo un daemon asi si mismo.
-#             get_free_daemon = freeDaemon(nodo_info.t1_daemons)
-#             if get_free_daemon != -1:
-#                 add_result(nodo_info, id_copy, f'Se envia trabajo al T1Daemon: {get_free_daemon}', "qmanager")
-#                 encargoDaemon(self, nodo_info, prioridad, get_free_daemon, id_copy)
-#                 nodo_info.t1_daemons[get_free_daemon].status = "BUSY"  # Para evitar errores
-#                 # Revisa si hay mas libres aparte de el, cambia a false si no hay
-#                 check_daemons(self, nodo_info, 1)
-#             else:  # No hay demonios disponibles
-#                 self.status_daemons[0] = False
-#                 add_result(nodo_info, id_copy, f'{free_daemons}', "qmanager")
-#                 add_result(nodo_info, id_copy, "Ya no hay T1Daemons", "qmanager")
-#                 break
-#         elif tipo_daemon == 2 and 2 in free_daemons:
-#             get_free_daemon = freeDaemon(nodo_info.t2_daemons)
-#             if get_free_daemon != -1:
-#                 add_result(nodo_info, id_copy, f'Se envia trabajo al T2Daemon: {get_free_daemon}', "qmanager")
-#                 encargoDaemon(self, nodo_info, prioridad, get_free_daemon, id_copy)
-#                 self.t2_daemons[get_free_daemon].status = "BUSY"
-#                 check_daemons(self, nodo_info, 2)
-#             else:
-#                 self.status_daemons[1] = False
-#                 add_result(nodo_info, id_copy, "Ya no hay T2Daemons", "qmanager")
-#         elif tipo_daemon == 3 and 3:  # in free_daemons:
-#             # El demonio tipo 3 siempre esta disponible
-#             # todo: Solo deberia de hacer referencia a un demonio tipo 3
-#             get_free_daemon = freeDaemon(nodo_info.t3_daemons)  # SOlo hay un demonio tipo 3
-#             add_result(nodo_info, id_copy, f'Se envia trabajo al T3Daemon: {get_free_daemon}', "qmanager")
-#             encargoDaemon(self, nodo_info, prioridad, get_free_daemon, id_copy)
-#             # if get_free_daemon != -1:
-#             #     print("Daemon tipo 3 se le envio el trabajo:", get_free_daemon)
-#             #     encargoDaemon(self, prioridad, get_free_daemon, tipo_daemon)
-#             #     self.t3_daemons[get_free_daemon].status = "BUSY"
-#             #     check_daemons(self, 3)
-#             # else:
-#             #     self.status_daemons[2] = False
-#             #     print("Ya no hay demonios tipo 3")
-#         # else:
-#         #     print("Algo malo paso, ver linea 143")
-#         #     break
-#         contPrioridad(self, prioridad)
+

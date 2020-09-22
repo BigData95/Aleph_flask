@@ -219,7 +219,7 @@ def startTimerClone(self, timer_value, operacion, parametros, daemon_id):
 # Manda T1 a nodo target
 def invokeTask(self, target, operacion, parametros, daemon_id, tipo_daemon):
     mensaje(self,
-            "STORE",
+            "TASK",
             target,
             self.id,
             parametros,
@@ -404,7 +404,7 @@ def kill_clone(self, clone_id, source_element, source_element_id):
             "KILL",
             self.id,
             self.id,
-            clone_id,  # Como si fueran parametros
+            clone_id,  # Parametros incluyen id_clone e id_copy
             elemento_interno_objetivo='t3daemon',
             elemento_interno_remitente=source_element,
             elem_int_obj_id=0,
