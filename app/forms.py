@@ -68,7 +68,7 @@ class FalloForm(FlaskForm):
                                RequiredIf('nodos_fallo'),
                                RequiredIf('tiempo_recuperacion')
                                ])
-    tiempo_recuperacion = StringField("Tiempo al que se recupera", [
+    tiempo_recuperacion = StringField("Tiempo que pasa despues del fallo para recuperarse.", [
                             lista_decimales,
                             RequiredIf('nodos_fallo'),
                             RequiredIf('tiempo_fallo')

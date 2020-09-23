@@ -67,7 +67,8 @@ class Aleph:
 
     # @staticmethod
     def proxy_do(self):
-        self.estoy_activo = "Hice algo con el proxy"
+        self.estoy_activo = False
+        self.politica = "WTF"
         self.proxy.do_something()
 
     def save(self):
@@ -75,9 +76,10 @@ class Aleph:
             'politica': self.politica,
             'en_fallo': self.estoy_activo
         }
+        print(f"Esto es lo que voy a guardar:{self.status}")
         return ConcreteMemento({
-                    'politica': self.politica,
-                    'en_fallo': self.estoy_activo
+            'politica': self.politica,
+            'en_fallo': self.estoy_activo
         })
 
     def restore(self, memento):
@@ -86,7 +88,8 @@ class Aleph:
         self.estoy_activo = self.status['en_fallo']
 
     def ver_estado(self):
-        print(f"Este es mi estado:{self.status}")
+        print(f"Este es mi estado Guardado{self.status}")
+        print(f"Politica {self.politica} Fallo {self.estoy_activo}")
 
     def caido(self):
         return self.estoy_activo
@@ -96,20 +99,34 @@ class implementacion:
     def __init__(self):
         self.algoritmo = Aleph()
         self.caretaker = Caretaker(self.algoritmo)
+        self.parametro = 0
+        self.snap = None
 
     def recive(self, event):
         if event == "proxy":
             if self.algoritmo.caido():
-                self.caretaker.save()
+                self.snapshot()
+                # self.caretaker.save()
                 self.algoritmo.proxy_do()
+                self.parametro += 1
             else:
                 print("Se ignora el mensaje")
 
         if event == "restaurar":
-            self.caretaker.restore()
+            self.restaura()
+            # self.caretaker.restore()
 
     def estado_algoritmo(self):
         self.algoritmo.ver_estado()
+        print(f"Diccionario: {self.snap}")
+
+    def snapshot(self):
+        print("Tomando snapShot")
+        self.caretaker.save()
+        self.snap = {'parametros': self.parametro}
+
+    def restaura(self):
+        self.caretaker.restore()
 
 
 prueba = implementacion()

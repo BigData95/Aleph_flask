@@ -1,5 +1,5 @@
 from .simulador.event import Event
-from .salidas import add_result, add_all
+# from .salidas import add_result, add_all
 
 
 class Mensaje(Event):
@@ -229,7 +229,6 @@ def invokeTask(self, target, operacion, parametros, daemon_id, tipo_daemon):
             nodo_objetivo=target,
             elem_int_rem_id=daemon_id
             )
-    add_result(self, parametros['id_copy'], f'Soy {tipo_daemon} y mando a{target}', tipo_daemon)
     if operacion == "ELIMINATECOPY":  # Manda al proxy
         pass
 

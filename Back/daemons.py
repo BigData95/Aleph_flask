@@ -74,7 +74,8 @@ class T1Daemon(Daemon):
                 self.__id_operacion += 1
                 self.results.append('FALSE')
             # self.__timer_state = parametros['timer_state']
-            add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Invoketask", "t1daemon")
+            add_result(nodo_info, event.parametros['id_copy'], 
+                       f"t1Class: Mando {event.operacion} a nodo {event.nodo_objetivo}", "t1daemon")
             invokeTask(nodo_info,
                        event.nodo_objetivo,
                        event.operacion,
@@ -186,7 +187,7 @@ class T2Daemon(Daemon):
             parametros['id_operacion_t2daemon'] = self.id_operacion
             self.id_operacion += 1
             self.results.append(False)
-            add_result(nodo_info, event.parametros['id_copy'], f"Creamos clon", "t2Daemon")
+            add_result(nodo_info, event.parametros['id_copy'], f"Creamos clon", "t2daemon")
             parametros['id_clone'] = uuid.uuid4()
             self.clones_pendientes.append(parametros['id_clone'])
             insert(nodo_info,

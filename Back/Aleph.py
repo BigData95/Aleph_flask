@@ -51,8 +51,9 @@ class Aleph(Model):
     def __init__(self):
         super().__init__()
         self.tiempo_fallo = None
-        self.tiempo_recuperacion = None
+        self.tiempo_recuperacion = []
         self.estoy_vivo = True
+        self.contador_auxiliar = 0
 
         self._state = None
 
@@ -98,7 +99,9 @@ class Aleph(Model):
         self.caretakers_buffer = list()
         [self.caretakers_buffer.append(Caretaker(self.buffer[buffer_id]))
          for buffer_id in range(len(self.buffer))]
-        # QManager
+
+        self.snapshot = None
+        self.prueba = 0
 
     def receive(self, event):
         """ Funciona como interfaz, manda los mensajes a los elementos del sistema que corresponda.
@@ -116,6 +119,8 @@ class Aleph(Model):
                 for i in indexes:
                     newevent = Mensaje("FALLO", self.clock + event.tiempo_fallo[i], self.id, self.id)
                     self.transmit(newevent)
+                    self.tiempo_recuperacion.append(event.tiempo_recuperacion[i])
+                    # self.tiempo_recuperacion = event.tiempo_recuperacion[i]
                     # newevent2 = Mensaje("RECUPERA", self.clock+event.tiempo_recuperacion[i], self.id, self.id)
                     # self.transmit(newevent2)
 
@@ -123,6 +128,11 @@ class Aleph(Model):
             # Se crea el snapshot del sistema y se entra en fallo
             save_state(self)
             self.estoy_vivo = False
+            add_all(self, f"Entrando en fallo, me voy a recuperar en el tiempo{self.clock+self.tiempo_recuperacion[self.contador_auxiliar]}")
+            print(f"Nodo: {self.id} Entro en Fallo. Me voy a recuperar en {self.tiempo_recuperacion[self.contador_auxiliar]}")
+            newevent = Mensaje("RECUPERA", self.clock + self.tiempo_recuperacion[self.contador_auxiliar], self.id, self.id)
+            self.transmit(newevent)
+            self.contador_auxiliar += 1
 
         if self.estoy_vivo:
             if event.name == "DESPIERTA" or event.target_element == "cliente":
@@ -147,8 +157,10 @@ class Aleph(Model):
                 t3_Daemon_do(self, event)
         else:
             if event.name == "RECUPERA":
+                print(f"Nodo:{self.id} Ya me recupere compa")
+                add_all(self, f"Ya me recupere c:")
                 self.estoy_vivo = True
-                restore(self)
+                restore_state(self)
 
 
 def save_state(self):
@@ -157,48 +169,47 @@ def save_state(self):
     Unicamente el objeto tiene acceso a su propio snapshot.
     Ver documentacion sobre memento para mas informacion
     """
-    self._state = {
-        'cliente': self.caretaker_cliente.save(),
-        'proxy': self.caretaker_proxy.save(),
-        'qmanager': self.caretaker_qmanager.save(),
-        'buffer': [
-            self.caretakers_buffer[buffer_id].save()
-            for buffer_id in range(len(self.buffer))
-        ],
-        't1_daemon': [
-            self.caretakers_t1daemon[id_daemon].save()
-            for id_daemon in range(len(self.t1_daemons))
-        ],
-        't2_daemon': [
-            self.caretakers_t2daemon[id_daemon].save()
-            for id_daemon in range(len(self.t2_daemons))
-        ],
-        't3_daemon': [
-            self.caretakers_t3daemon[id_daemon].save()
-            for id_daemon in range(len(self.t3_daemons))
-        ]
-    }
-    # TODO: Quiza no necesite guardar los caretaker.save en self._state
+    # for daemon in range(len(self.caretakers_t1daemon)):
+    #     self.caretakers_t1daemon[daemon].save()
+
+    # for daemon in range(len(self.caretakers_t2daemon)):
+    #     self.caretakers_t2daemon[daemon].save()
+
+    # for daemon in range(len(self.caretakers_t3daemon)):
+    #     self.caretakers_t3daemon[daemon].save()
+
+    # for buffer in range(len(self.caretakers_buffer)):
+    #     self.caretakers_buffer[buffer].save()
+
+    # self.caretaker_cliente.save()
+    # self.caretaker_proxy.save()
+    self.caretaker_qmanager.save()
+
+    # Para los elementos propios no se usa el patron memento
+    self.snapshot = {'prueba': self.prueba}
+
     # TODO: agregar propiedades que faltan
 
 
-def restore(self) -> None:
+def restore_state(self) -> None:
     """
     Como solamente cada objeto tiene acceso a su memento y su propio estado,
     cada quien se restaura por si mismo.
     """
-    self.caretaker_cliente.restore()
-    self.caretaker_proxy.restore()
+    # self.caretaker_cliente.restore()
+    # self.caretaker_proxy.restore()
     self.caretaker_qmanager.restore()
-    for buffer_id in range(len(self.buffer)):
-        self.caretakers_buffer[buffer_id].restore()
+    # for buffer_id in range(len(self.caretakers_buffer)):
+    #     self.caretakers_buffer[buffer_id].restore()
 
-    for daemons in range(len(self.t1_daemons)):
-        self.caretakers_t1daemon[daemons].restore()
-    for daemons in range(len(self.t2_daemons)):
-        self.caretakers_t2daemon[daemons].restore()
-    for daemons in range(len(self.t3_daemons)):
-        self.caretakers_t3daemon[daemons].restore()
+    # for daemons in range(len(self.caretakers_t1daemon)):
+    #     self.caretakers_t1daemon[daemons].restore()
+    # for daemons in range(len(self.caretakers_t2daemon)):
+    #     self.caretakers_t2daemon[daemons].restore()
+    # for daemons in range(len(self.caretakers_t3daemon)):
+    #     self.caretakers_t3daemon[daemons].restore()
+    self.prueba = self.snapshot['prueba']
+    self.snapshot.clear()
 
 
 def cliente_do(self, event):
@@ -358,7 +369,9 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
         tiempo_recuperacion=tiempo_recuperacion
     )
     experiment.init(seed)
-    if lista_fallo.strip():
+
+    # En este punto lista_fallo ya es una lista.
+    if lista_fallo:
         seed_all(experiment,
                  experiment.numero_nodos,
                  "AVISO_FALLO",

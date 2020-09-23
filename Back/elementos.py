@@ -176,10 +176,11 @@ class Buffer:
                            self.__buffer_id)
                 self.clones_pendientes.remove(event.parametros['id_clone'])
             else:
-                print(f"Parametros:{event.parametros}")
-                print("Ya se habia confirmado esta dispersion")
-                print(f"CLones: {self.clones_pendientes}")
-                print()
+                pass
+                # print(f"Parametros:{event.parametros}")
+                # print("Ya se habia confirmado esta dispersion")
+                # print(f"CLones: {self.clones_pendientes}")
+                # print()
 
     # @staticmethod
     def store_from_t1daemon(self, nodo_info, event):
@@ -231,7 +232,7 @@ class Buffer:
     @staticmethod
     def store_from_t2daemon(nodo_info, event):
         add_result(nodo_info, event.parametros['id_copy'],
-                   f"Llego {event.name} de algun t2Daemon. Le mando confirmacion", "buffer")
+                   f"Llego {event.operacion} de algun t2Daemon. Le mando confirmacion", "buffer")
         confirmStorage(nodo_info, event.name, event.source, "t2daemon",
                        event.parametros, daemon_id=event.source_element_id)
 
@@ -384,11 +385,37 @@ class QManager:
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
         self._state = "state de qmanager"
-        return ConcreteMemento(self._state)
+        return ConcreteMemento({
+            'queue_high': self.queue_high,
+            'queue_medium': self.queue_medium,
+            'queue_low': self.queue_low,
+            'contador_prioridad_alta': self.cont_prioridad_alta,
+            'contador_prioridad_media': self.cont_prioridad_media,
+            'contador_prioridad_baja': self.cont_prioridad_baja,
+            'politica': self.politica,
+            'status_daemons': self.status_daemons
+        })
+        # return ConcreteMemento(self._state)
 
     def restore(self, memento: Memento):
         self._state = memento.get_state()
+        self.queue_high = self._state['queue_high']
+        self.queue_medium = self._state['queue_medium']
+        self.queue_low = self._state['queue_low']
+        self.cont_prioridad_alta = self._state['contador_prioridad_alta']
+        self.cont_prioridad_media = self._state['contador_prioridad_media']
+        self.cont_prioridad_baja = self._state['contador_prioridad_baja']
+        self.politica = self._state['politica']
+        self.status_daemons = self._state['status_daemons']
         # todo: Igualar todos las propiedades necesarias
+
+    def ver_estado(self):
+        print(f"El estado de Qmanager es \n High {self.queue_low}"
+              f"Medium {self.queue_medium}"
+              f"Low: {self.queue_low}"
+              f"politica: {self.politica}"
+              f" Status daemons {self.status_daemons}"
+              )
 
 
 def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
@@ -449,5 +476,3 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
             encargoDaemon(self, nodo_info, prioridad, get_free_daemon, id_copy)
             break
         contPrioridad(self, prioridad)
-
-
