@@ -1,0 +1,71 @@
+
+import copy
+
+from .daemons import Daemon
+from .mensajes import insert, startTimerClone
+from .salidas import add_result
+from .memento import ConcreteMemento, Caretaker, Memento
+
+
+class T3Daemon(Daemon):
+    def __init__(self, __daemon_id, __status='FREE'):
+        super().__init__(__daemon_id)
+        self._state = None
+        self.__clones = list()
+        self.__matar_clon = list()
+        # self.__parametros = None
+
+    def execute(self, nodo_info, event):
+        parametros = copy.copy(event.parametros)
+        add_result(nodo_info, parametros['id_copy'], "Execute Daemon 3, inicio timer", "t3daemon")
+        # Create clone, ya debe de venir dentro de los parametros
+        self.__clones.append(event.parametros['id_clone'])
+        parametros['prioridad'] = event.prioridad
+        parametros['nodo_objetivo'] = event.nodo_objetivo
+        parametros['source_id'] = event.source_element_id
+        startTimerClone(nodo_info,
+                        event.parametros['timer'],
+                        event.operacion,
+                        parametros,
+                        self.daemon_id
+                        )
+
+    def timer(self, nodo_info, event):
+        add_result(nodo_info, event.parametros['id_copy'], "Timer de T3Daemon", "t3daemon")
+        if event.parametros['id_clone'] in self.__clones:
+            add_result(nodo_info, event.parametros['id_copy'], "Mando insert", "t3daemon")
+            if event.parametros['charge_daemon'] == "t1daemon":
+                daemon = "T1DaemonID"
+            else:  # if event.parametros['charge_daemon'] == "T2DaemonID":
+                daemon = "T2DaemonID"
+            insert(nodo_info,
+                   daemon,  # event.parametros['charge_daemon'],
+                   nodo_info.id,
+                   nodo_info.id,
+                   event.parametros,
+                   event.parametros['prioridad'],
+                   event.operacion,
+                   elemento_interno_remitente="t3Daemon",
+                   nodo_objetivo=event.parametros['nodo_objetivo'],
+                   daemon_id=event.parametros['source_id']
+                   )
+        else:
+            add_result(nodo_info, event.parametros['id_copy'], "Este clon ya se mato, no se hace insert", "t3daemon")
+
+    def kill(self, nodo_info, event):
+        if event.parametros['id_clone'] in self.__clones:
+            add_result(nodo_info, event.parametros['id_copy'],
+                       f"Kill: LLega mensaje para eliminar clon{event.parametros['id_clone']}, lo eliminamos", "t3daemon")
+            self.__clones.remove(event.parametros['id_clone'])
+        else:
+            pass
+            # print(f"Clock:{nodo_info.clock}, KILL. No esta el clon {event.parametros['id_clone']}, esta en otro nodo o ya se elimino")
+
+    def save(self) -> ConcreteMemento:
+        # todo: Cuando se modifica el estado?
+        self._state = 'state de daemon'
+        return ConcreteMemento(self._state)
+
+    def restore(self, memento: Memento):
+        self._state = memento.get_state()
+        # todo: Igualar todos las propiedades necesarias

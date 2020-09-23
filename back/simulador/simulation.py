@@ -25,7 +25,7 @@ class Simulation:
         for line in lines:
             fields = line.split()
             neighbors = []
-            if not lineas_vacias.match(line): #<-- Revisa
+            if not lineas_vacias.match(line): #<-- Revisa si la linea comienza con el salto de linea
                 self.__numero_nodos += 1   # <-- Aumenta contador
                 for f in fields:
                     neighbors.append(int(f))
@@ -49,7 +49,7 @@ class Simulation:
         """ arranca el motor de simulacion """
         while self.engine.isOn():
             nextevent = self.engine.returnEvent()
-            target = nextevent.target
+            target = nextevent.target   # <-- Antes nextevent.getTarget()
             time = nextevent.time
             port = nextevent.port
             nextprocess = self.table[target]

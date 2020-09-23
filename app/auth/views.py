@@ -3,7 +3,8 @@ from flask import render_template
 from . import auth
 from app.forms import FalloForm 
 
-from Back import Aleph, salidas
+from back import Aleph_main as Aleph
+from back import salidas
 
 
 @auth.route('/aleph', methods=['GET', 'POST'])

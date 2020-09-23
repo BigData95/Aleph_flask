@@ -2,14 +2,20 @@ import random
 import pathlib
 
 # todo: Hacer solo los import necesarios
-from .auxiliar import encolar, toList
-from .daemons import T1Daemon, T2Daemon, T3Daemon
-from .salidas import add_all, add_result, regresa, Config
-from .elementos import Cliente, Proxy, Buffer, QManager
+from .t1daemon import T1Daemon
+from .t2daemon import T2Daemon
+from .t3daemon import T3Daemon
+from .salidas import add_all, add_result
+from .config import Config
+from .cliente import Cliente
+from .proxy import Proxy
+from .buffer import Buffer
+from .qManager import QManager
 from .mensajes import Mensaje
-# Del simulador
-from .simulador import Model, Simulation
 from .memento import ConcreteMemento, Caretaker, Memento
+
+# Del simulador
+from .simulador import Model
 
 # Martinez Vargas Edgar Ivan
 # 2153043702
@@ -101,10 +107,10 @@ class Aleph(Model):
          for buffer_id in range(len(self.buffer))]
 
         self.snapshot = None
-        self.prueba = 0
 
     def receive(self, event):
-        """ Funciona como interfaz, manda los mensajes a los elementos del sistema que corresponda.
+        """
+        Funciona como interfaz, manda los mensajes a los elementos del sistema que corresponda.
             Y maneja la simulacion del fallo con su recuperacion.
         """
 
@@ -120,17 +126,17 @@ class Aleph(Model):
                     newevent = Mensaje("FALLO", self.clock + event.tiempo_fallo[i], self.id, self.id)
                     self.transmit(newevent)
                     self.tiempo_recuperacion.append(event.tiempo_recuperacion[i])
-                    # self.tiempo_recuperacion = event.tiempo_recuperacion[i]
-                    # newevent2 = Mensaje("RECUPERA", self.clock+event.tiempo_recuperacion[i], self.id, self.id)
-                    # self.transmit(newevent2)
 
         if event.name == "FALLO":
             # Se crea el snapshot del sistema y se entra en fallo
             save_state(self)
             self.estoy_vivo = False
-            add_all(self, f"Entrando en fallo, me voy a recuperar en el tiempo{self.clock+self.tiempo_recuperacion[self.contador_auxiliar]}")
-            print(f"Nodo: {self.id} Entro en Fallo. Me voy a recuperar en {self.tiempo_recuperacion[self.contador_auxiliar]}")
-            newevent = Mensaje("RECUPERA", self.clock + self.tiempo_recuperacion[self.contador_auxiliar], self.id, self.id)
+            add_all(self,
+                    f"Entrando en fallo, me voy a recuperar en el tiempo{self.clock + self.tiempo_recuperacion[self.contador_auxiliar]}")
+            print(
+                f"Nodo: {self.id} Entro en Fallo. Me voy a recuperar en {self.tiempo_recuperacion[self.contador_auxiliar]}")
+            newevent = Mensaje("RECUPERA", self.clock + self.tiempo_recuperacion[self.contador_auxiliar], self.id,
+                               self.id)
             self.transmit(newevent)
             self.contador_auxiliar += 1
 
@@ -186,7 +192,7 @@ def save_state(self):
     self.caretaker_qmanager.save()
 
     # Para los elementos propios no se usa el patron memento
-    self.snapshot = {'prueba': self.prueba}
+    # self.snapshot = {'prueba': self.prueba}
 
     # TODO: agregar propiedades que faltan
 
@@ -208,7 +214,7 @@ def restore_state(self) -> None:
     #     self.caretakers_t2daemon[daemons].restore()
     # for daemons in range(len(self.caretakers_t3daemon)):
     #     self.caretakers_t3daemon[daemons].restore()
-    self.prueba = self.snapshot['prueba']
+    # self.prueba = self.snapshot['prueba']
     self.snapshot.clear()
 
 
@@ -330,69 +336,3 @@ def t3_Daemon_do(self, event):
         self.t3_daemons[event.target_element_id].timer(self, event)
     if event.name == "KILL":
         self.t3_daemons[event.target_element_id].kill(self, event)  # Parametros es el clone id
-
-
-# Main
-def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
-    """
-    Se llama desde app/auth/views.py
-    Se hace la validacion de lista_fallo, tiempo_fallo y tiempo_recuperacion para que
-    las 3 listas esten completamente vacias o las 3 listas contengan datos.
-    """
-    fn = pathlib.Path(__file__).parent / 'topo.txt'
-    experiment = Simulation(fn, 500)
-    # asocia un pareja proceso/modelo con cada nodo de la grafica
-    for i in range(1, len(experiment.graph) + 1):
-        m = Aleph()
-        experiment.setModel(m, i)
-
-    # ! No es necesrio hacer los 3 ifs porque desde el GUI se valida.
-    # Si uno esta vacia todos lo estan, si una tine cosas, las demas tambien.
-    if lista_fallo.strip():
-        lista_fallo = toList(lista_fallo, "int")
-        print(f'Esta es la lista: {lista_fallo}')
-    if tiempo_fallo.strip():
-        tiempo_fallo = toList(tiempo_fallo, 'float')
-        print(f'Estos son los tiempo de fallo {tiempo_fallo}')
-    if tiempo_recuperacion.strip():
-        tiempo_recuperacion = toList(tiempo_recuperacion, 'float')
-        print(f'Estos son los tiempos de recuperacion {tiempo_recuperacion}')
-
-    # inserta un evento semilla en la agenda y arranca
-    seed = Mensaje(
-        "DESPIERTA",
-        0.0,  # Tiempo
-        1,  # Target
-        1,  # Source
-        lista_fallo=lista_fallo,
-        tiempo_fallo=tiempo_fallo,
-        tiempo_recuperacion=tiempo_recuperacion
-    )
-    experiment.init(seed)
-
-    # En este punto lista_fallo ya es una lista.
-    if lista_fallo:
-        seed_all(experiment,
-                 experiment.numero_nodos,
-                 "AVISO_FALLO",
-                 lista_fallo,
-                 tiempo_fallo,
-                 tiempo_recuperacion)
-    experiment.run()
-
-    return regresa()
-
-
-def seed_all(experiment: Simulation, numero_nodos: int, mensaje: str,
-             lista_fallo: list, tiempo_fallo: list, tiempo_recuperacion: list):
-    """
-    Genera semillas. En este caso manda a los nodos que van a fallar la informacion que necesitan para
-    simular el fallo y la recuperacion. Si se quita el if, se puede ver como una especie de broadcast
-    """
-    for nodo in range(1, numero_nodos + 1):
-        if nodo in lista_fallo:
-            seed = Mensaje(mensaje, 0.0, nodo, nodo,
-                           lista_fallo=lista_fallo,
-                           tiempo_fallo=tiempo_fallo,
-                           tiempo_recuperacion=tiempo_recuperacion)
-            experiment.init(seed)

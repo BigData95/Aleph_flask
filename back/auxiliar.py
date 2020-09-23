@@ -5,7 +5,9 @@ import random
 
 from .daemons import Daemon
 from .mensajes import *
-from .salidas import add_result, add_all, Config
+from .salidas import add_result, add_all
+from .config import Config
+from .simulador import Simulation
 
 """
 Metodos necesarios para el algoritmo, pero que no aparecen en los diagramas o
@@ -132,3 +134,18 @@ def invokeOracle() -> int:
     # ! Numeros magicos!!!!!
     # TODO:Segun topo.txt del nodo 5 al 8 son nodos encargados de almacenar
     return random.randint(Config.NODO_SERVER_LOWER, Config.NODO_SERVER_UPPER)
+
+
+def seed_all(experiment: Simulation, numero_nodos: int, mensaje: str,
+             lista_fallo: list, tiempo_fallo: list, tiempo_recuperacion: list):
+    """
+    Auxiliar: Genera semillas. En este caso manda a los nodos que van a fallar la informacion que necesitan para
+    simular el fallo y la recuperacion. Si se quita el if, se puede ver como una especie de broadcast
+    """
+    for nodo in range(1, numero_nodos + 1):
+        if nodo in lista_fallo:
+            seed = Mensaje(mensaje, 0.0, nodo, nodo,
+                           lista_fallo=lista_fallo,
+                           tiempo_fallo=tiempo_fallo,
+                           tiempo_recuperacion=tiempo_recuperacion)
+            experiment.init(seed)
