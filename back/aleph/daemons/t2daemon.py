@@ -1,11 +1,11 @@
 import copy
 import uuid
 
-from .daemons import Daemon
-from .mensajes import invokeTask, startTimer, insert, mensajeDaemon, confirmStorage, kill_clone
-from .salidas import add_result, add_all
-from .config import Config
-from .memento import ConcreteMemento, Caretaker, Memento
+from back.aleph.daemons import Daemon
+from back.aleph.mensajes import invokeTask, startTimer, insert, mensajeDaemon, confirmStorage, kill_clone
+from back.aleph.salidas import add_result, add_all
+from back.aleph.config import Config
+from back.aleph.memento import ConcreteMemento, Caretaker, Memento
 
 
 class T2Daemon(Daemon):

@@ -1,8 +1,8 @@
 import random
-from .config import Config
-from .mensajes import store
-from .salidas import add_all
-from .memento import ConcreteMemento, Memento
+from back.aleph.config import Config
+from back.aleph.mensajes import store
+from back.aleph.salidas import add_all
+from back.aleph.memento import ConcreteMemento, Memento
 
 
 class Cliente:

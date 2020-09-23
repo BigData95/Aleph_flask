@@ -3,11 +3,11 @@ from typing import List
 
 import random
 
-from .daemons import Daemon
+from back.aleph.daemons.daemons import Daemon
 from .mensajes import *
-from .salidas import add_result, add_all
+from .salidas import add_result
 from .config import Config
-from .simulador import Simulation
+from back.simulador import Simulation
 
 """
 Metodos necesarios para el algoritmo, pero que no aparecen en los diagramas o

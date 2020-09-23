@@ -1,5 +1,5 @@
 import pathlib
-from .simulador import Simulation
+from back.simulador import Simulation
 from .Aleph import Aleph
 from .auxiliar import toList, seed_all
 from .mensajes import Mensaje

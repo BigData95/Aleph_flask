@@ -1,11 +1,11 @@
 import copy
 import math
 import uuid
-from .config import Config
-from .auxiliar import invokeOracle
-from .mensajes import insert, confirmReport, kill_clone, confirmStorage
-from .memento import ConcreteMemento, Memento
-from .salidas import add_all, add_result
+from back.aleph.config import Config
+from back.aleph.auxiliar import invokeOracle
+from back.aleph.mensajes import insert, confirmReport, kill_clone, confirmStorage
+from back.aleph.memento import ConcreteMemento, Memento
+from back.aleph.salidas import add_all, add_result
 
 
 class Buffer:

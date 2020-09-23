@@ -1,10 +1,10 @@
 
 import copy
 
-from .daemons import Daemon
-from .mensajes import insert, startTimerClone
-from .salidas import add_result
-from .memento import ConcreteMemento, Caretaker, Memento
+from back.aleph.daemons import Daemon
+from back.aleph.mensajes import insert, startTimerClone
+from back.aleph.salidas import add_result
+from back.aleph.memento import ConcreteMemento, Caretaker, Memento
 
 
 class T3Daemon(Daemon):

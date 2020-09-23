@@ -1,4 +1,4 @@
-from .simulador.event import Event
+from back.simulador.event import Event
 # from .salidas import add_result, add_all
 
 

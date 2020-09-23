@@ -1,26 +1,24 @@
-import random
-import pathlib
-
 # todo: Hacer solo los import necesarios
-from .t1daemon import T1Daemon
-from .t2daemon import T2Daemon
-from .t3daemon import T3Daemon
+from back.aleph.daemons.t1daemon import T1Daemon
+from back.aleph.daemons.t2daemon import T2Daemon
+from back.aleph.daemons.t3daemon import T3Daemon
+from back.aleph.elementos.cliente import Cliente
+from back.aleph.elementos.proxy import Proxy
+from back.aleph.elementos.buffer import Buffer
+from back.aleph.elementos.qManager import QManager
+
 from .salidas import add_all, add_result
 from .config import Config
-from .cliente import Cliente
-from .proxy import Proxy
-from .buffer import Buffer
-from .qManager import QManager
 from .mensajes import Mensaje
-from .memento import ConcreteMemento, Caretaker, Memento
+from .memento import Caretaker
 
 # Del simulador
-from .simulador import Model
+from back.simulador import Model
 
 # Martinez Vargas Edgar Ivan
 # 2153043702
 """ 
-    Aleph 
+    aleph 
 Sobre topo.txt:
     El nodo 1 se considera como el nodo que hace las peticiones de serivicio (ClientApp).
     Los nodos 2,3,4 se consideran proxies, estan conectados entre si, con el cliente y con el resto de los nodos.

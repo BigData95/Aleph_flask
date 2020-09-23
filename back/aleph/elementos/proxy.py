@@ -1,8 +1,8 @@
-from .config import Config
-from .salidas import add_all, add_result
-from .mensajes import store, confirmReport
-from .auxiliar import generateNewName
-from .memento import ConcreteMemento, Memento
+from back.aleph.config import Config
+from back.aleph.salidas import add_all, add_result
+from back.aleph.mensajes import store, confirmReport
+from back.aleph.auxiliar import generateNewName
+from back.aleph.memento import ConcreteMemento, Memento
 
 
 class Proxy:

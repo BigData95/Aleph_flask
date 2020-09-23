@@ -1,10 +1,10 @@
 import copy
 
-from .daemons import Daemon
-from .mensajes import report, invokeTask, startTimer, insert, mensajeDaemon
-from .salidas import add_result, add_all
-from .config import Config
-from .memento import ConcreteMemento, Caretaker, Memento
+from back.aleph.daemons import Daemon
+from back.aleph.mensajes import report, invokeTask, startTimer, insert, mensajeDaemon
+from back.aleph.salidas import add_result, add_all
+from back.aleph.config import Config
+from back.aleph.memento import ConcreteMemento, Caretaker, Memento
 
 
 class T1Daemon(Daemon):

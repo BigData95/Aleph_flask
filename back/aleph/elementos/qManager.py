@@ -1,6 +1,6 @@
-from .salidas import add_all, add_result
-from .memento import ConcreteMemento, Caretaker, Memento
-from .auxiliar import (
+from back.aleph.salidas import add_all, add_result
+from back.aleph.memento import ConcreteMemento, Caretaker, Memento
+from back.aleph.auxiliar import (
     encolar,
     getIndexPositions,
     encargoDaemon,

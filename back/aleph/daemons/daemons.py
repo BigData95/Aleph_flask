@@ -1,4 +1,4 @@
-from .memento import ConcreteMemento, Caretaker, Memento
+from back.aleph.memento import ConcreteMemento, Caretaker, Memento
 
 
 """
