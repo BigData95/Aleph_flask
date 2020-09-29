@@ -35,7 +35,7 @@ class Mensaje(Event):
                  lista_fallo=None,
                  tiempo_fallo=None,
                  tiempo_recuperacion=None,
-                 puerto=0
+                #  puerto=0
                  ):
         Event.__init__(self, name, time, target, source, port=0)
         # self.__puerto = port
@@ -108,7 +108,7 @@ def mensaje(self,
             prioridad=None,
             elem_int_obj_id=None,
             elem_int_rem_id=None,
-            puerto=0):
+            ):
     """ Mandar mensajer completos
         Los parametros con valores por default pueden ser prescindibles en algunos mensajes especificos
         de esta forma cuando se hace uso del metodo y se necesita algun parametro con valores con default(pero no todos)
@@ -203,7 +203,7 @@ def startTimer(self, parametros, operacion, daemon_id, nodo_objetivo, prioridad,
 
 def startTimerClone(self, timer_value, operacion, parametros, daemon_id):
     newEvent = Mensaje("TIMER_CLONE",
-                       self.clock + 1,
+                       self.clock + timer_value,
                        self.id,
                        self.id,
                        parametros,
@@ -242,7 +242,6 @@ def insert(self,
            prioridad,
            operacion,
            elemento_interno_remitente="buffer",
-           elemento_interno_id=None,
            nodo_objetivo=None,
            timer=None,
            taskReplica=None,
@@ -283,19 +282,7 @@ def insert(self,
         )
         self.transmit(newevent)
         
-        # mensaje(self,
-        #         daemon,
-        #         target,
-        #         source,
-        #         parametros,
-        #         operacion,
-        #         "qmanager",
-        #         elemento_interno_remitente,
-        #         nodo_objetivo,
-        #         prioridad,
-        #         daemon_id,
-        #         daemon_id
-        #         )
+
     if daemon == "T2DaemonID":
         if 'taskReplica' not in parametros:
             parametros['taskReplica'] = taskReplica

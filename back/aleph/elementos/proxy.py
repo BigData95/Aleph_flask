@@ -24,7 +24,7 @@ class Proxy:
 
     def confirm(self, nodo_info, event):
         # EL resultado viene en event.operacion
-        add_result(nodo_info, event.parametros['id_copy'], f"LLego confirmacion a Proxy, hago update", "proxy")
+        add_result(nodo_info, event.parametros['id_copy'], "LLego confirmacion a Proxy, hago update", "proxy")
         if event.operacion == "SUCESS":
             # Buscamos si ya teniamos registro del id_file anteriormente
             for file in self.cont_copies['id_file']:

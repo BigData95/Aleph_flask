@@ -1,5 +1,5 @@
 from back.aleph.salidas import add_all, add_result
-from back.aleph.memento import ConcreteMemento, Caretaker, Memento
+from back.aleph.memento import ConcreteMemento, Memento
 from back.aleph.auxiliar import (
     encolar,
     getIndexPositions,
@@ -80,7 +80,7 @@ class QManager:
                                    "No hay nada en la lista de prioridad baja, cambioamos politica, vamos a alta")
                         self.politica = "HIGH"
             else:
-                pass
+                print("No hay tareas pendientes")
                 # add_all(nodo_info, f'No hay tareas pendientes: {self.politica}')
         else:
             add_all(nodo_info, "No hay demonios disponibles")

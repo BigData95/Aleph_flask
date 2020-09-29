@@ -23,7 +23,7 @@ class Cliente:
 
     @staticmethod
     def confirm(nodo_info, event):
-        add_all(nodo_info, f"LLego la confirmacion de mi storage", "cliente")
+        add_all(nodo_info, "LLego la confirmacion de mi storage", "cliente")
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?

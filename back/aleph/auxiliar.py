@@ -4,7 +4,7 @@ from typing import List
 import random
 
 from back.aleph.daemons.daemons import Daemon
-from .mensajes import *
+from .mensajes import execute, Mensaje
 from .salidas import add_result
 from .config import Config
 from back.simulador import Simulation
@@ -54,7 +54,7 @@ def getIndexPositions(list_elements, element) -> List[int]:
             # Add the index position in list
             indexPosList.append(indexPos + 1)
             indexPos += 1
-        except ValueError as e:
+        except ValueError:
             break
     return indexPosList
 
@@ -136,7 +136,7 @@ def invokeOracle() -> int:
     return random.randint(Config.NODO_SERVER_LOWER, Config.NODO_SERVER_UPPER)
 
 
-def seed_all(experiment: Simulation, numero_nodos: int, mensaje: str,
+def seed_all(experiment: Simulation, numero_nodos: int, mensaje_envio: str,
              lista_fallo: list, tiempo_fallo: list, tiempo_recuperacion: list):
     """
     Auxiliar: Genera semillas. En este caso manda a los nodos que van a fallar la informacion que necesitan para
@@ -144,7 +144,7 @@ def seed_all(experiment: Simulation, numero_nodos: int, mensaje: str,
     """
     for nodo in range(1, numero_nodos + 1):
         if nodo in lista_fallo:
-            seed = Mensaje(mensaje, 0.0, nodo, nodo,
+            seed = Mensaje(mensaje_envio, 0.0, nodo, nodo,
                            lista_fallo=lista_fallo,
                            tiempo_fallo=tiempo_fallo,
                            tiempo_recuperacion=tiempo_recuperacion)

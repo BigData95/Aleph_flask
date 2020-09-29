@@ -89,8 +89,11 @@ class Aleph(Model):
         self.caretaker_qmanager = Caretaker(self.qManager)
 
         self.caretakers_t1daemon = list()
-        [self.caretakers_t1daemon.append(Caretaker(self.t1_daemons[daemon_id]))
-         for daemon_id in range(len(self.t1_daemons))]
+        for daemon_id in range(len(self.t1_daemons)):
+            self.caretakers_t1daemon.append(Caretaker(self.t1_daemons[daemon_id]))
+
+        # [self.caretakers_t1daemon.append(Caretaker(self.t1_daemons[daemon_id]))
+        #  for daemon_id in range(len(self.t1_daemons))]
 
         self.caretakers_t2daemon = list()
         [self.caretakers_t2daemon.append(Caretaker(self.t2_daemons[daemon_id]))
@@ -162,7 +165,7 @@ class Aleph(Model):
         else:
             if event.name == "RECUPERA":
                 print(f"Nodo:{self.id} Ya me recupere compa")
-                add_all(self, f"Ya me recupere c:")
+                add_all(self, "Ya me recupere c:")
                 self.estoy_vivo = True
                 restore_state(self)
 

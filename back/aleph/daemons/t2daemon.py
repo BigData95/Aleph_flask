@@ -3,9 +3,9 @@ import uuid
 
 from back.aleph.daemons import Daemon
 from back.aleph.mensajes import invokeTask, startTimer, insert, mensajeDaemon, confirmStorage, kill_clone
-from back.aleph.salidas import add_result, add_all
+from back.aleph.salidas import add_result
 from back.aleph.config import Config
-from back.aleph.memento import ConcreteMemento, Caretaker, Memento
+from back.aleph.memento import ConcreteMemento, Memento
 
 
 class T2Daemon(Daemon):
@@ -28,7 +28,7 @@ class T2Daemon(Daemon):
             parametros['id_operacion_t2daemon'] = self.id_operacion
             self.id_operacion += 1
             self.results.append(False)
-            add_result(nodo_info, event.parametros['id_copy'], f"Creamos clon", "t2daemon")
+            add_result(nodo_info, event.parametros['id_copy'], "Creamos clon", "t2daemon")
             parametros['id_clone'] = uuid.uuid4()
             self.clones_pendientes.append(parametros['id_clone'])
             insert(nodo_info,
@@ -68,7 +68,7 @@ class T2Daemon(Daemon):
                        event.prioridad,
                        "t2daemon")
         else:
-            add_result(nodo_info, event.parametros['id_copy'], f"No se hace insert, ya se habia eliminado el clon",
+            add_result(nodo_info, event.parametros['id_copy'], "No se hace insert, ya se habia eliminado el clon",
                        "t2daemon")
             # Ya se habia eliminado el clon segun t2daemon pero el t3daemon no sabia
             kill_clone(nodo_info, parametros, "t2daemon", self.daemon_id)
@@ -81,7 +81,7 @@ class T2Daemon(Daemon):
         # TODO: Esto esta al reves
         if self.results[event.parametros['id_operacion_t2daemon']]:
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"Timer: LLego la respuesta antes de expirar el timer, el clon ya se elimino. No hago insert",
+                       "Timer: LLego la respuesta antes de expirar el timer, el clon ya se elimino. No hago insert",
                        "t2daemon")
         else:
             add_result(nodo_info, event.parametros['id_copy'],

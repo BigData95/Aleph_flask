@@ -2,9 +2,9 @@ import copy
 
 from back.aleph.daemons import Daemon
 from back.aleph.mensajes import report, invokeTask, startTimer, insert, mensajeDaemon
-from back.aleph.salidas import add_result, add_all
+from back.aleph.salidas import add_result
 from back.aleph.config import Config
-from back.aleph.memento import ConcreteMemento, Caretaker, Memento
+from back.aleph.memento import ConcreteMemento, Memento
 
 
 class T1Daemon(Daemon):
@@ -101,8 +101,7 @@ class T1Daemon(Daemon):
             # Aviso que ya estoy disponible
         self.__status = "FREE"
         mensajeDaemon(nodo_info, "FREE", self.daemon_id, "t1daemon", "1", event.parametros['id_copy'])
-        # TODO: Como esta libre debria limpiar su parametros
-        # TODO: CleanParametros()
+
 
     def confirm(self, nodo_info, event):
         """
@@ -126,8 +125,6 @@ class T1Daemon(Daemon):
         self._state = memento.get_state()
         # todo: Igualar todos las propiedades necesarias
 
-    def clean(self):
-        self.__nodo_objetivo = None
-        self.__prioridad = None
-        self.__operacion = None
-        self.__timer_state = 0
+    # def clean(self):
+    #     self.__prioridad = None
+    #     self.__operacion = None

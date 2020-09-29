@@ -5,7 +5,7 @@ from back.aleph.config import Config
 from back.aleph.auxiliar import invokeOracle
 from back.aleph.mensajes import insert, confirmReport, confirmStorage
 from back.aleph.memento import ConcreteMemento, Memento
-from back.aleph.salidas import add_all, add_result
+from back.aleph.salidas import add_result
 
 
 class Buffer:
@@ -100,14 +100,14 @@ class Buffer:
     def store_from_t1daemon(self, nodo_info, event):
         print(f"Nodo: {nodo_info.id}  Buffer clock: {nodo_info.clock} , store desde t1Daemon")
         clone = 0
-        add_result(nodo_info, event.parametros['id_copy'], f'##Buffer##', "buffer")
+        add_result(nodo_info, event.parametros['id_copy'], '##Buffer##', "buffer")
         add_result(nodo_info, event.parametros['id_copy'],
                    f'Tengo que hacer un {event.operacion} a peticion de T1Daemon: {event.source_element_id} del nodo {event.source}',
                    "buffer")
 
         if event.parametros['id_copy'] == 0:
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"Ya esta guardado en el buffer, no hay riesgo de que se pierda.", "buffer")
+                       "Ya esta guardado en el buffer, no hay riesgo de que se pierda.", "buffer")
             # Mas tarde algun t1Daemon te pedira que lo elimines.
             self.files.append(event.parametros['id_file'])
             confirmStorage(nodo_info,
@@ -144,7 +144,7 @@ class Buffer:
                    parametros,
                    "HIGH",
                    "STORE",
-                   elemento_interno_id=self.buffer_id,
+                   # elemento_interno_id=self.buffer_id,
                    nodo_objetivo=nodo_info.id,  # Nodo objetivo, soy yo mismo. El oraculo me escogio
                    timer=Config.CLONE_TIMER,
                    charge_daemon="t1daemon"
@@ -224,7 +224,7 @@ class Buffer:
                            "STORE",
                            elemento_interno_remitente="buffer",
                            nodo_objetivo=id_nodo,
-                           elemento_interno_id=self.buffer_id,
+                           # elemento_interno_id=self.buffer_id,
                            taskReplica=0
                            )
                     # insert to t2daemon

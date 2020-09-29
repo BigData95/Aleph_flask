@@ -49,5 +49,5 @@ class Caretaker:
         print(f'Carataker: Restoring state to: {memento.get_name()}')
         try:
             self._originator.restore(memento)
-        except Exception:
+        except LookupError:
             self.restore()

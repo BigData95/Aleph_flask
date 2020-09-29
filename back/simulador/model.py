@@ -19,6 +19,13 @@ class Model(metaclass=ABCMeta):
     def __init__(self):
         """ define el valor inicial de su reloj """
         self.clock = 0.0
+        
+        # Es buena practica poner todos los atributos dentro del init. Aunque no se inicialicen ahi
+        # Quiza setProcess deberia ser el verdadero __init__.
+        self.process = None
+        self.neighbors = None
+        self.id = None
+        self.port = None
 
     def setTime(self, time):
         """ actualiza el valor del reloj local """

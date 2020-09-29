@@ -4,7 +4,7 @@ import copy
 from back.aleph.daemons import Daemon
 from back.aleph.mensajes import insert, startTimerClone
 from back.aleph.salidas import add_result
-from back.aleph.memento import ConcreteMemento, Caretaker, Memento
+from back.aleph.memento import ConcreteMemento, Memento
 
 
 class T3Daemon(Daemon):
@@ -12,7 +12,7 @@ class T3Daemon(Daemon):
         super().__init__(__daemon_id)
         self._state = None
         self.__clones = list()
-        self.__matar_clon = list()
+        # self.__matar_clon = list()
         # self.__parametros = None
 
     def execute(self, nodo_info, event):
