@@ -44,6 +44,7 @@ class T2Daemon(Daemon):
                    timer=Config.CLONE_TIMER,
                    charge_daemon="t2daemon",
                    )
+            print(f"Nodo: {nodo_info.id}  Clock:{nodo_info.clock} Operacion de confirm: {event.operacion} Nodo objetivo {event.nodo_objetivo}")
             confirmStorage(nodo_info,
                            event.operacion,
                            nodo_info.id,

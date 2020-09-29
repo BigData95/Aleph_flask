@@ -244,6 +244,7 @@ def buffer_do(self, event):
         if event.name == "SUCESS" or event.name == "FAILURE":
             self.buffer[0].report_from_t1daemon(self, event)
         if event.name == "TASK":
+            # print("LLego task")
             if event.operacion == "STORE":
                 self.buffer[0].store_from_t1daemon(self, event)
             elif event.operacion == "PROCESS":
@@ -254,7 +255,7 @@ def buffer_do(self, event):
                 self.buffer[0].store_from_t2daemon(self, event)
 
         if event.name == "CONFIRM":
-            self.buffer[event.source_element_id].confirm(self, event)
+            self.buffer[0].confirm(self, event)
 
 
 def qManager_do(self, event):  # QManager

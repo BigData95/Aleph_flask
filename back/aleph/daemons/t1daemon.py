@@ -17,6 +17,7 @@ class T1Daemon(Daemon):
 
     # @staticmethod
     def execute(self, nodo_info, event):
+        print(f"Nodo: {nodo_info.id} Clock: {nodo_info.clock} T1Daemon Execute {event.nodo_objetivo}")
         # TODO: Documentar que tiene los parametros
         add_result(nodo_info, event.parametros['id_copy'],
                    f'Execute desde T1Daemon {event.target_element_id}', "t1daemon")

@@ -8,7 +8,6 @@ from back.aleph.memento import ConcreteMemento, Memento
 class Proxy:
     def __init__(self):
         self._state = None
-
         # Cada que llega guarda el id_file y el nodo_id, sin importar si ya se guardo antes en algun copy
         self.record = {'id_file': [], 'nodo_id': []}
         # Aqui solo hay un unico id_file

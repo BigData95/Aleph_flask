@@ -3,7 +3,7 @@ import math
 import uuid
 from back.aleph.config import Config
 from back.aleph.auxiliar import invokeOracle
-from back.aleph.mensajes import insert, confirmReport, kill_clone, confirmStorage
+from back.aleph.mensajes import insert, confirmReport, confirmStorage
 from back.aleph.memento import ConcreteMemento, Memento
 from back.aleph.salidas import add_all, add_result
 
@@ -12,8 +12,9 @@ class Buffer:
     def __init__(self, buffer_id):
         self.__buffer_id = buffer_id
         self.clones_pendientes = list()
-        self.operaciones_pendientes = list()
+        # self.operaciones_pendientes = list()
         self._state = None
+        self.files_dispersando = list()
         self.files = list()
         # self.resultados = True # ya me llegaron los resultados? ver store_from_t1daemon
 
@@ -24,6 +25,7 @@ class Buffer:
     @staticmethod
     def store_from_proxy(nodo_info, event):
         file_, new_name, num_copy = event.parametros
+        # informacion = {'file': new_name, 'encargados': list()}
         for copia in range(num_copy):
             id_nodo = invokeOracle()
             add_result(nodo_info, copia, "##Buffer##", "buffer")
@@ -35,6 +37,9 @@ class Buffer:
                 'id_copy': copia,
                 'reported': 0
             }
+            # informacion['encargados'].append(copia, id_nodo)
+
+            print(f"Genera: nodo {nodo_info.id} Nodo generado por oracle: {id_nodo}, con id_copy: {copia}")
             insert(nodo_info,  # Para qManager
                    "T1DaemonID",
                    nodo_info.id,
@@ -66,7 +71,6 @@ class Buffer:
             else:  # event.parametros["reported"] > Config.MAX_FAILURES
                 add_result(nodo_info, event.parametros["id_copy"], f"Operacion {event.operacion} FAILURE", "buffer")
             event.parametros['resultado'] = "SUCESS"
-            # confirmStorage(nodo_info, event.operacion, nodo_info.id, "proxy", event.parametros, event.nodo_objetivo)
             confirmReport(nodo_info, event.name, nodo_info.id, "proxy", event.parametros, event.nodo_objetivo)
             # update()  # TODO: Update, actualiza la lista del buffer segun IDFILE e idCopy
 
@@ -74,23 +78,27 @@ class Buffer:
         add_result(nodo_info, event.parametros['id_copy'], "##Buffer##", "buffer")
         if event.source_element == 't2daemon':
             add_result(nodo_info, event.parametros['id_copy'], "Llego resultado de la dispersion", "buffer")
-            # Matamos al clon
-            if event.parametros['id_clone'] in self.clones_pendientes:
-                print("Llego el restulado de la dispersion")
-                kill_clone(nodo_info,
-                           {'id_clone': event.parametros['id_clone'], 'id_copy': event.parametros['id_copy']},
-                           "buffer",
-                           self.__buffer_id)
-                self.clones_pendientes.remove(event.parametros['id_clone'])
+
+            # Busco si el id_file esta en los files que estamos esperando.
+            index = next((i for i, files in enumerate(self.files_dispersando)
+                          if files['id_file'] == event.parametros['id_file']), None)
+            if index is not None:
+                self.files_dispersando[index]['dispersos_pendientes'] -= 1
+
+                if self.files_dispersando[index]['dispersos_pendientes'] == 0:
+                    # Ya se almacenaron todos los dispersos
+                    add_result(nodo_info, event.parametros['id_copy'],
+                               f"Todos los dispersos de {event.parametros['id_file']} estan almacenados", "buffer")
+                    # Deberia de poder matar al clone pero no sabe en que nodo esta programado. Es el nodo que tiene NumCopy=1
+                    self.files_dispersando.pop(index)
+                    # TODO: deberia de hacer insert a t1daemon, ver instruccion 13 eb Storage Process, second phase
             else:
-                pass
-                # print(f"Parametros:{event.parametros}")
-                # print("Ya se habia confirmado esta dispersion")
-                # print(f"CLones: {self.clones_pendientes}")
-                # print()
+                print("Whoops")
+                # Llego la respuesta a otro nodo, nunca deberia pasar esto
 
     # @staticmethod
     def store_from_t1daemon(self, nodo_info, event):
+        print(f"Nodo: {nodo_info.id}  Buffer clock: {nodo_info.clock} , store desde t1Daemon")
         clone = 0
         add_result(nodo_info, event.parametros['id_copy'], f'##Buffer##', "buffer")
         add_result(nodo_info, event.parametros['id_copy'],
@@ -100,6 +108,8 @@ class Buffer:
         if event.parametros['id_copy'] == 0:
             add_result(nodo_info, event.parametros['id_copy'],
                        f"Ya esta guardado en el buffer, no hay riesgo de que se pierda.", "buffer")
+            # Mas tarde algun t1Daemon te pedira que lo elimines.
+            self.files.append(event.parametros['id_file'])
             confirmStorage(nodo_info,
                            event.operacion,
                            event.source,
@@ -120,9 +130,13 @@ class Buffer:
             parametros['new_id_copy'] = 1
             # Porque si no se elimina, lo tomaria como si ya lo hubiera iniciado un t1Daemmon, dentro de si mismo.
             del (parametros['timer_state'])
-            # Creamos el id del clon y guardamos registro de el para poder eliminarlo despues
+            # Creamos el id del clon y guardamos") registro de el para poder eliminarlo despues
             parametros['id_clone'] = uuid.uuid4()
-            self.clones_pendientes.append(parametros['id_clone'])
+            file_pendiente = {'id_file': parametros['id_file'], 'id_clone': parametros['id_clone']}
+            # Solo a quien le toque el NumCopy == 1 hace uso de self.clones_pendientes
+            self.clones_pendientes.append(file_pendiente)
+            print(
+                f"Nodo {nodo_info.id} Creamos clone en buffer {self.clones_pendientes}")
             insert(nodo_info,
                    "T3DaemonID",
                    nodo_info.id,
@@ -138,6 +152,9 @@ class Buffer:
 
     @staticmethod
     def store_from_t2daemon(nodo_info, event):
+        """
+        Solo se almacena. Se trata de algun disperso procesado por t2Daemon
+        """
         add_result(nodo_info, event.parametros['id_copy'],
                    f"Llego {event.operacion} de algun t2Daemon. Le mando confirmacion", "buffer")
         confirmStorage(nodo_info, event.name, event.source, "t2daemon",
@@ -165,7 +182,6 @@ class Buffer:
             fragmentos = [file_size / cortar for _ in range(int(math.ceil(cortar)))]
         else:
             fragmentos = [file_size]
-        print(f"{fragmentos}")
         for fragmento in range(len(fragmentos)):
             if fragmento > Config.UMA:
                 parametros = {
@@ -189,6 +205,10 @@ class Buffer:
                        nodo_objetivo=id_nodo)
             else:
                 dispersos = self.disperse(fragmento)
+                dispersando = {'id_file': event.parametros['id_file'], 'dispersos_pendientes': len(dispersos)}
+                self.files_dispersando.append(dispersando)
+                print(
+                    f"Nodo:{nodo_info.id} Clock {nodo_info.clock} Se crearan {len(dispersos)} T2Daemon por los dipersos, pendientes {self.files_dispersando}")
                 for disperso in range(len(dispersos)):
                     id_nodo = invokeOracle()
                     parametros = copy.copy(event.parametros)
