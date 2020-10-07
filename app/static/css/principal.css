@@ -1,0 +1,307 @@
+.prueba{
+    font-size: smaller;
+}
+
+.hero {
+    position: relative;
+    width: 100%;
+    background-image: url(../images/compu.jpg);
+    -webkit-box-shadow: 0 4px 11px rgba(124, 146, 169, .5);
+    box-shadow: 0 4px 11px rgba(124, 146, 169, .5);
+    background-size: cover;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    color: #fff
+}
+
+.hero__inner {
+    position: relative;
+    z-index: 3
+}
+
+.hero__overlay {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    opacity: .96;
+    z-index: 1;
+    background-color: #6c63ff
+}
+
+.hero__overlay--gradient {
+    background: -webkit-gradient(linear, left top, right top, from(#6c63ff), to(#4641ff));
+    background: linear-gradient(90deg, #6c63ff, #4641ff)
+}
+
+.hero__overlay--gradientVertical {
+    background: -webkit-gradient(linear, left top, left bottom, from(#6c63ff), to(#4641ff));
+    background: linear-gradient(180deg, #6c63ff, #4641ff)
+}
+
+.hero__mask {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1920" height="1080" viewBox="0 0 1920 1080"><defs><linearGradient id="06714b97-aec8-4b7e-bf3d-1e20f95f612e" y1="809.5" x2="958" y2="809.5" gradientTransform="matrix(1, 0, 0, -1, 0, 1082)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="0.05"/></linearGradient></defs><title>hero</title><rect id="0567095b-2cf7-4407-b8ab-ec2abe52d830" data-name="&lt;Path&gt;" y="545" width="1920" height="535" fill="#fff" opacity="0.05" style="isolation:isolate"/><polygon id="82ca9a61-a0a1-49cc-9805-a3533c693bad" data-name="&lt;Path&gt;" points="958 545 0 545 0 0 770.96 0 958 545" fill="url(#06714b97-aec8-4b7e-bf3d-1e20f95f612e)"/></svg>');
+    background-size: cover;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    opacity: .66;
+    z-index: 2
+}
+
+.hero__content {
+    -js-display: flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    min-height: calc(100vh - 50px);
+    padding: 92px 0;
+    overflow: auto
+}
+
+.hero__content__inner {
+    width: 100%;
+    max-width: 600px;
+    text-align: center
+}
+
+.hero__title {
+    color: inherit;
+    margin-bottom: 1.25em
+}
+
+.hero__text {
+    opacity: .85;
+    line-height: 1.7;
+    text-align: left;
+    font-size: 1.1em
+}
+
+.hero .button {
+    margin: 12pt 8pt
+}
+
+.hero__button {
+    color: #fff;
+    border-color: #fff
+}
+
+@media (min-width:992px) {
+    .hero__button:hover {
+        color: #e3e3e3;
+        border-color: #e3e3e3
+    }
+}
+
+.hero__sub {
+    -js-display: flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    height: 50px
+}
+
+.hero__sub__down {
+    width: 1rem;
+    height: 1rem;
+    color: #666;
+    -webkit-transition: .7s;
+    transition: .7s;
+    cursor: pointer
+}
+
+@media (min-width:992px) {
+    .hero__sub__down:hover {
+        color: #6c63ff
+    }
+}
+
+#scrollToNext {
+    -webkit-transition: .7s;
+    transition: .7s
+}
+
+.hero--full .hero__content {
+    min-height: 100vh
+}
+
+.hero--full+.hero__sub {
+    display: none
+}
+button,
+input,
+optgroup,
+select,
+textarea {
+    font-family: inherit;
+    font-size: 100%;
+    line-height: 1.15;
+    margin: 0
+}
+
+button,
+input {
+    overflow: visible
+}
+
+button,
+select {
+    text-transform: none
+}
+
+[type=button],
+[type=reset],
+[type=submit],
+button {
+    -webkit-appearance: button
+}
+
+[type=button]::-moz-focus-inner,
+[type=reset]::-moz-focus-inner,
+[type=submit]::-moz-focus-inner,
+button::-moz-focus-inner {
+    border-style: none;
+    padding: 0
+}
+
+[type=button]:-moz-focusring,
+[type=reset]:-moz-focusring,
+[type=submit]:-moz-focusring,
+button:-moz-focusring {
+    outline: 1px dotted ButtonText
+}
+
+.button,
+button {
+    display: inline-block;
+    padding: 6pt 20pt;
+    line-height: 1.7;
+    border: 1px solid #6c63ff;
+    color: #6c63ff;
+    font-weight: 400;
+    -webkit-transition: .7s;
+    white-space: nowrap;
+    cursor: pointer;
+    background-color: transparent;
+    border-radius: 30px;
+    margin-bottom: 1.3em;
+    transition: .7s;
+    text-align: center;
+    text-decoration: none
+}
+
+.button:focus,
+.button:hover,
+button:focus,
+button:hover {
+    outline: 0
+}
+
+
+@media (min-width:992px) {
+
+    .button:hover,
+    button:hover {
+        border-color: #463aff;
+        color: #463aff
+    }
+}
+
+.button__primary {
+    background-color: #6c63ff;
+    border-color: #6c63ff;
+    color: #fff
+}
+
+@media (min-width:992px) {
+    .button__primary:hover {
+        background-color: #463aff;
+        border-color: #463aff;
+        color: #fff
+    }
+}
+
+.button__accent {
+    background-color: #06d19c;
+    border-color: #06d19c;
+    color: #fff
+}
+
+@media (min-width:992px) {
+    .button__accent:hover {
+        background-color: #05bd8d;
+        border-color: #05bd8d;
+        color: #fff
+    }
+}
+
+.button__delete {
+    background-color: tomato;
+    border-color: tomato;
+    color: #fff
+}
+
+@media (min-width:992px) {
+    .button__delete:hover {
+        background-color: #ff5233;
+        border-color: #ff5233;
+        color: #fff
+    }
+}
+
+.button:disabled {
+    opacity: .25;
+    cursor: default;
+    pointer-events: none
+}
+
+.button--fixed {
+    width: 160px
+}
+
+.button--fixed2 {
+    width: 220px
+}
+
+.hero .button {
+    margin: 12pt 8pt
+}
+
+.hero__button {
+    color: #fff;
+    border-color: #fff
+}
+
+@media (min-width:992px) {
+    .hero__button:hover {
+        color: #e3e3e3;
+        border-color: #e3e3e3
+    }
+}
+
+.button__accent {
+    background-color: #06d19c;
+    border-color: #06d19c;
+    color: #fff
+}
+
+@media (min-width:992px) {
+    .button__accent:hover {
+        background-color: #05bd8d;
+        border-color: #05bd8d;
+        color: #fff
+    }
+}

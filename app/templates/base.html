@@ -5,31 +5,50 @@
 </script>
  -->
 
-
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
-
+{%block stylesheet%}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+    integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+{%endblock %}
 
 {% block head %}
 
 <title>
     {% block title %}Aleph|{% endblock %}
 </title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}">
 
 {% endblock %}
 
 
 {% block body%}
-
-<nav class="navbar navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-center">
     <div class="container">
-    <a class="navbar-brand" href="#">
-        <img 
-        src="{{ url_for('static', filename='images/alephimg.png') }}"
-        width="80" height="40" alt="" 
-        loading="lazy">
-        Aleph Simulator
-    </a>
+
+
+        <a class="navbar-brand" href="#">
+            <img src="{{ url_for('static', filename='images/alephimg.png') }}" width="50" height="50" alt=""
+                loading="lazy">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('aleph.main')}}">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('aleph.simulador')}}">Simulador</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="https://github.com/BigData95/Aleph_flask" target="_blank">Descarga</a>
+                </li>
+            </ul>
+        </div>
+
+
+
     </div>
 </nav>
 

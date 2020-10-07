@@ -1,13 +1,13 @@
 from flask import render_template
 
-from . import auth
+from . import aleph
 from app.forms import FalloForm
 
 from back.aleph import salidas, Aleph_main as Aleph
 
 
-@auth.route('/aleph', methods=['GET', 'POST'])
-def inicio():
+@aleph.route('/simulador', methods=['GET', 'POST'])
+def simulador():
     resultados = ['x']
     fallo_form = FalloForm()
 
@@ -27,15 +27,13 @@ def inicio():
         'fallo_form': fallo_form,
         'resultados': resultados,
     }
-    return render_template('index.html', **contexto)
+    return render_template('aleph_storage.html', **contexto)
 
-    # return render_template('index.html', **contexto)
+    # return render_template('aleph_storage.html', **contexto)
 
 
-# @auth.route('/clean')
-# def clean():
-#     contexto = {
-#         'resultados': ['vacio']
-#     }
 
-#     return render_template('index.html', **contexto)
+
+@aleph.route('/main', methods=['GET','POST'])
+def main():
+    return render_template('main.html')

@@ -1,5 +1,5 @@
 from flask import Blueprint
 
-auth = Blueprint('auth', __name__, url_prefix='/auth')
+aleph = Blueprint('aleph', __name__, url_prefix='/aleph')
 
 from . import views

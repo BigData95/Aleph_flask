@@ -10,7 +10,7 @@ app = create_app()
 
 @app.route('/')
 def index():
-    response = make_response(redirect('/auth/aleph'))
+    response = make_response(redirect('/aleph/main'))
     return response
 
 
