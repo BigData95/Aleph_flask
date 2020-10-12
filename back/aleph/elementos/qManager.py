@@ -13,9 +13,9 @@ from back.aleph.auxiliar import (
 class QManager:
     def __init__(self):
         self._state = None
-        self.queue_high = [[] for __ in range(0)]  # todo:Cambiar por algo mas sencillo
-        self.queue_medium = [[] for __ in range(0)]
-        self.queue_low = [[] for __ in range(0)]
+        self.queue_high = []  # todo:Cambiar por algo mas sencillo
+        self.queue_medium = []
+        self.queue_low = []
 
         # Contador para politicas de servicio
         self.cont_prioridad_alta = 0
@@ -26,7 +26,7 @@ class QManager:
 
     def store(self, nodo_info, event, tipo_daemon):
         add_result(nodo_info, event.parametros['id_copy'], "#QManager#", "qmanager")
-        add_result(nodo_info, event.parametros['id_copy'], f'La prioridad es: {event.prioridad}', "qmanager")
+        # add_result(nodo_info, event.parametros['id_copy'], f'La prioridad es: {event.prioridad}', "qmanager")
         elementos = {
             'tipo_daemon': tipo_daemon,
             'nodo_objetivo': event.nodo_objetivo,
@@ -36,12 +36,9 @@ class QManager:
             'id_daemon_objetivo': event.target_element_id
         }
         encolar(self, elementos, event.prioridad)
-        add_result(nodo_info, event.parametros['id_copy'], f"Deberia encolar deamon tipo {tipo_daemon}", "qmanager")
+        add_result(nodo_info, event.parametros['id_copy'], f"Encola a deamon tipo:{tipo_daemon} Prioridad:{event.prioridad}", "qmanager")
 
     def retrieve_t1daemon(self):
-        pass
-
-    def process_t1daemon(self):
         pass
 
     def eliminate_copy(self):
@@ -57,7 +54,7 @@ class QManager:
                 free_daemons = getIndexPositions(self.status_daemons, True)
                 if self.politica == "HIGH":
                     if self.queue_high:
-                        prueba(self, nodo_info, self.queue_high, free_daemons, "HIGH", id_copy)
+                        iterar_daemon(self, nodo_info, self.queue_high, free_daemons, "HIGH", id_copy)
                         despachado = True
                     else:  # NO HAY NADA EN LA LISTA DE PRIORIDAD ALTA, CAMBIAMOS POLITICA
                         add_result(nodo_info, id_copy,
@@ -65,7 +62,7 @@ class QManager:
                         self.politica = "MEDIUM"
                 if self.politica == "MEDIUM":
                     if self.queue_medium:
-                        prueba(self, nodo_info, self.queue_medium, free_daemons, "MEDIUM", id_copy)
+                        iterar_daemon(self, nodo_info, self.queue_medium, free_daemons, "MEDIUM", id_copy)
                         despachado = True
                     else:
                         add_result(nodo_info, id_copy,
@@ -73,15 +70,15 @@ class QManager:
                         self.politica = "LOW"
                 if self.politica == "LOW":
                     if self.queue_low:
-                        prueba(self, nodo_info, self.queue_low, free_daemons, "LOW", id_copy)
+                        iterar_daemon(self, nodo_info, self.queue_low, free_daemons, "LOW", id_copy)
                         despachado = True
                     else:
                         add_result(nodo_info, id_copy,
                                    "No hay nada en la lista de prioridad baja, cambioamos politica, vamos a alta")
                         self.politica = "HIGH"
-            else:
-                print("No hay tareas pendientes")
-                # add_all(nodo_info, f'No hay tareas pendientes: {self.politica}')
+            # else:
+            #     # print("No hay tareas pendientes")
+            #     add_all(nodo_info, f'No hay tareas pendientes: {self.politica}')
         else:
             add_all(nodo_info, "No hay demonios disponibles")
 
@@ -113,7 +110,7 @@ class QManager:
         # todo: Igualar todos las propiedades necesarias
 
 
-def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
+def iterar_daemon(self, nodo_info, queue: list, free_daemons: int, prioridad: str, id_copy: int):
     for iterador in range(len(queue)):
         # Revisamos el primer elementos en la cola
         tipo_daemon = queue[iterador]['tipo_daemon']
@@ -131,7 +128,7 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
             else:
                 get_free_daemon = freeDaemon(nodo_info.t1_daemons)
                 if get_free_daemon != -1:
-                    add_result(nodo_info, id_copy, f'Se envia trabajo al T1Daemon: {get_free_daemon}', "qmanager")
+                    # add_result(nodo_info, id_copy, f'Se envia trabajo al T1Daemon: {get_free_daemon}', "qmanager")
                     encargoDaemon(self, nodo_info, prioridad, get_free_daemon, id_copy)
                     nodo_info.t1_daemons[get_free_daemon].status = "BUSY"  # Para evitar errores
                     # Revisa si hay mas libres aparte de el, cambia a false si no hay
@@ -155,7 +152,7 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
             else:
                 get_free_daemon = freeDaemon(nodo_info.t2_daemons)
                 if get_free_daemon != -1:
-                    add_result(nodo_info, id_copy, f'Se envia trabajo al T2Daemon: {get_free_daemon}', "qmanager")
+                    # add_result(nodo_info, id_copy, f'Se envia trabajo al T2Daemon: {get_free_daemon}', "qmanager")
                     encargoDaemon(self, nodo_info, prioridad, get_free_daemon, id_copy)
                     nodo_info.t2_daemons[get_free_daemon].status = "BUSY"
                     check_daemons(self, nodo_info, 2)
@@ -167,7 +164,7 @@ def prueba(self, nodo_info, queue, free_daemons, prioridad, id_copy):
         elif tipo_daemon == 3 and 3:
             # El demonio tipo 3 siempre esta disponible
             get_free_daemon = freeDaemon(nodo_info.t3_daemons)  # SOlo hay un demonio tipo 3
-            add_result(nodo_info, id_copy, f'Se envia trabajo al T3Daemon: {get_free_daemon}', "qmanager")
+            # add_result(nodo_info, id_copy, f'Se envia trabajo al T3Daemon: {get_free_daemon}', "qmanager")
             encargoDaemon(self, nodo_info, prioridad, get_free_daemon, id_copy)
             break
         contPrioridad(self, prioridad)

@@ -12,8 +12,8 @@ class T2Daemon(Daemon):
     def __init__(self, __daemon_id, __status="FREE"):
         super().__init__(__daemon_id, __status)
         self._state = None
-        self.results = list()
-        self.clones_pendientes = list()
+        self.results = []
+        self.clones_pendientes = []
         self.id_operacion = 0
 
     def execute(self, nodo_info, event):
@@ -28,9 +28,9 @@ class T2Daemon(Daemon):
             parametros['id_operacion_t2daemon'] = self.id_operacion
             self.id_operacion += 1
             self.results.append(False)
-            add_result(nodo_info, event.parametros['id_copy'], "Creamos clon", "t2daemon")
             parametros['id_clone'] = uuid.uuid4()
             self.clones_pendientes.append(parametros['id_clone'])
+            add_result(nodo_info, event.parametros['id_copy'], f"ID: {self.daemon_id} Creo clon {parametros['id_clone']}", "t2daemon")
             insert(nodo_info,
                    "T3DaemonID",
                    nodo_info.id,
@@ -44,7 +44,6 @@ class T2Daemon(Daemon):
                    timer=Config.CLONE_TIMER,
                    charge_daemon="t2daemon",
                    )
-            print(f"Nodo: {nodo_info.id}  Clock:{nodo_info.clock} Operacion de confirm: {event.operacion} Nodo objetivo {event.nodo_objetivo}")
             confirmStorage(nodo_info,
                            event.operacion,
                            nodo_info.id,
@@ -54,6 +53,8 @@ class T2Daemon(Daemon):
                            remitente_interno="t2daemon",
                            remitente_interno_id=self.daemon_id)
         if parametros['id_clone'] in self.clones_pendientes:
+            add_result(nodo_info, event.parametros['id_copy'], f"ID:{self.daemon_id} Mando operacion STORE "
+                        f"de dispersos a nodo objetivo {event.nodo_objetivo} y programo timer", "t2daemon")
             invokeTask(nodo_info,
                        event.nodo_objetivo,
                        "STORE_DISPERSO",
@@ -68,8 +69,8 @@ class T2Daemon(Daemon):
                        event.prioridad,
                        "t2daemon")
         else:
-            add_result(nodo_info, event.parametros['id_copy'], "No se hace insert, ya se habia eliminado el clon",
-                       "t2daemon")
+            add_result(nodo_info, event.parametros['id_copy'], f"ID:{self.daemon_id} No se hace insert, ya se habia "
+                                                               f"eliminado el clon", "t2daemon")
             # Ya se habia eliminado el clon segun t2daemon pero el t3daemon no sabia
             kill_clone(nodo_info, parametros, "t2daemon", self.daemon_id)
             self.status = "FREE"

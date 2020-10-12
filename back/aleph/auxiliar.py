@@ -29,7 +29,7 @@ def encargoDaemon(self, nodo_info, prioridad, id_daemon, id_copy):
     else:
         raise ValueError("La prioridad no se encuentra definida")
 
-    add_result(nodo_info, id_copy, f'Mando execute al {id_daemon} Prioridad: {prioridad}', "qmanager")
+    add_result(nodo_info, id_copy, f'Se envia trabajo al daemon tipo:{next_task["tipo_daemon"]} ID:{id_daemon} Prioridad:{prioridad}', "qmanager")
     execute(nodo_info,
             next_task['nodo_objetivo'],
             next_task['source'],
@@ -108,7 +108,7 @@ def contPrioridad(self, prioridad):
 def toList(lista, tipo):
     """Auxiliar: Convierte un String a una lista de enteros, \
     funciona si el string esta delimitado por: , - o un espacio  """
-    respuesta = list()
+    respuesta = []
     "Si se agregan delimitadores, cambiar la expresion regular en forms.py"
     delimitadores = " ", ",", "-"
     regex = '|'.join(map(re.escape, delimitadores))

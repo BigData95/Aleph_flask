@@ -11,11 +11,11 @@ from back.aleph.salidas import add_result
 class Buffer:
     def __init__(self, buffer_id):
         self.__buffer_id = buffer_id
-        self.clones_pendientes = list()
+        self.clones_pendientes = []
         # self.operaciones_pendientes = list()
         self._state = None
-        self.files_dispersando = list()
-        self.files = list()
+        self.files_dispersando = []
+        self.files = []
         # self.resultados = True # ya me llegaron los resultados? ver store_from_t1daemon
 
     @property
@@ -102,12 +102,12 @@ class Buffer:
         clone = 0
         add_result(nodo_info, event.parametros['id_copy'], '##Buffer##', "buffer")
         add_result(nodo_info, event.parametros['id_copy'],
-                   f'Tengo que hacer un {event.operacion} a peticion de T1Daemon: {event.source_element_id} del nodo {event.source}',
+                   f'Tengo que hacer {event.operacion} a peticion de T1DaemonID: {event.source_element_id} del nodo {event.source}',
                    "buffer")
 
         if event.parametros['id_copy'] == 0:
             add_result(nodo_info, event.parametros['id_copy'],
-                       "Ya esta guardado en el buffer, no hay riesgo de que se pierda.", "buffer")
+                       "Ya esta guardado en el buffer, no hay riesgo de que se pierda. Mando confirmacion.", "buffer")
             # Mas tarde algun t1Daemon te pedira que lo elimines.
             self.files.append(event.parametros['id_file'])
             confirmStorage(nodo_info,
@@ -121,11 +121,11 @@ class Buffer:
 
         elif event.parametros['id_copy'] == 1 or ('new_id_copy' in event.parametros):
             clone += 1
-            add_result(nodo_info, event.parametros['id_copy'], "Voy a dispersar", "buffer")
+            add_result(nodo_info, event.parametros['id_copy'], f"Voy a dispersar a {event.parametros['id_file']}", "buffer")
             self.process(nodo_info, event)
 
         elif event.parametros["id_copy"] > 1 or clone >= 2:
-            add_result(nodo_info, event.parametros['id_copy'], "Mando instruccion para crear clon", "buffer")
+            # Creamos clon
             parametros = copy.copy(event.parametros)
             parametros['new_id_copy'] = 1
             # Porque si no se elimina, lo tomaria como si ya lo hubiera iniciado un t1Daemmon, dentro de si mismo.
@@ -135,8 +135,9 @@ class Buffer:
             file_pendiente = {'id_file': parametros['id_file'], 'id_clone': parametros['id_clone']}
             # Solo a quien le toque el NumCopy == 1 hace uso de self.clones_pendientes
             self.clones_pendientes.append(file_pendiente)
-            print(
-                f"Nodo {nodo_info.id} Creamos clone en buffer {self.clones_pendientes}")
+            add_result(nodo_info, event.parametros['id_copy'], f"Mando instruccion para crear clon id: {parametros['id_clone']}", "buffer")
+            # print(
+            #     f"Nodo {nodo_info.id} Creamos clone en buffer {self.clones_pendientes}")
             insert(nodo_info,
                    "T3DaemonID",
                    nodo_info.id,
@@ -209,6 +210,7 @@ class Buffer:
                 self.files_dispersando.append(dispersando)
                 print(
                     f"Nodo:{nodo_info.id} Clock {nodo_info.clock} Se crearan {len(dispersos)} T2Daemon por los dipersos, pendientes {self.files_dispersando}")
+                add_result(nodo_info, event.parametros['id_copy'], f"Se van almancear {len(dispersos)} dispersos","buffer")
                 for disperso in range(len(dispersos)):
                     id_nodo = invokeOracle()
                     parametros = copy.copy(event.parametros)

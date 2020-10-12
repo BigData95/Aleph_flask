@@ -1,7 +1,7 @@
 import random
 from back.aleph.config import Config
 from back.aleph.mensajes import store
-from back.aleph.salidas import add_all
+from back.aleph.salidas import add_all, add_result
 from back.aleph.memento import ConcreteMemento, Memento
 
 
@@ -23,6 +23,7 @@ class Cliente:
 
     @staticmethod
     def confirm(nodo_info, event):
+        add_result(nodo_info, event.parametros['id_copy'], "##Cliente##", "cliente")
         add_all(nodo_info, "LLego la confirmacion de mi storage", "cliente")
 
     def save(self) -> ConcreteMemento:

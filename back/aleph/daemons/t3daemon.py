@@ -11,13 +11,13 @@ class T3Daemon(Daemon):
     def __init__(self, __daemon_id, __status='FREE'):
         super().__init__(__daemon_id)
         self._state = None
-        self.__clones = list()
+        self.__clones = []
         # self.__matar_clon = list()
         # self.__parametros = None
 
     def execute(self, nodo_info, event):
         parametros = copy.copy(event.parametros)
-        add_result(nodo_info, parametros['id_copy'], "Execute Daemon 3, inicio timer", "t3daemon")
+        add_result(nodo_info, parametros['id_copy'], f"LLega clon {event.parametros['id_clone']}. Inicio timer", "t3daemon")
         # Create clone, ya debe de venir dentro de los parametros
         self.__clones.append(event.parametros['id_clone'])
         parametros['prioridad'] = event.prioridad
@@ -31,9 +31,10 @@ class T3Daemon(Daemon):
                         )
 
     def timer(self, nodo_info, event):
-        add_result(nodo_info, event.parametros['id_copy'], "Timer de T3Daemon", "t3daemon")
+        add_result(nodo_info, event.parametros['id_copy'], "Expira timer", "t3daemon")
         if event.parametros['id_clone'] in self.__clones:
-            add_result(nodo_info, event.parametros['id_copy'], "Mando insert", "t3daemon")
+            add_result(nodo_info, event.parametros['id_copy'], f'Mando insert a {event.parametros["charge_daemon"]} '
+                        f'Id:{event.parametros["source_id"]} de nodo {event.parametros["nodo_objetivo"]}', "t3daemon")
             if event.parametros['charge_daemon'] == "t1daemon":
                 daemon = "T1DaemonID"
             else:  # if event.parametros['charge_daemon'] == "T2DaemonID":

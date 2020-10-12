@@ -12,18 +12,17 @@ class T1Daemon(Daemon):
         Daemon.__init__(self, daemon_id, status)
         self._state = None
         self.__status = None
-        self.results = list()
+        self.results = []
         self.__id_operacion = 0
 
     # @staticmethod
     def execute(self, nodo_info, event):
-        print(f"Nodo: {nodo_info.id} Clock: {nodo_info.clock} T1Daemon Execute {event.nodo_objetivo}")
-        # TODO: Documentar que tiene los parametros
-        add_result(nodo_info, event.parametros['id_copy'],
-                   f'Execute desde T1Daemon {event.target_element_id}', "t1daemon")
+        # print(f"Nodo: {nodo_info.id} Clock: {nodo_info.clock} T1Daemon Execute {event.nodo_objetivo}")
+        # add_result(nodo_info, event.parametros['id_copy'],
+        #            f'Execute desde T1Daemon {event.target_element_id}', "t1daemon")
         if nodo_info.target_status == "suspected":
             add_result(nodo_info, event.parametros['id_file'],
-                       f"T1Daemon:{self.daemon_id} Target is suspected.", "t1daemon")
+                       f"ID:{self.daemon_id} Target is suspected.", "t1daemon")
             report(self,
                    "FAILURE",
                    self.daemon_id,
@@ -41,7 +40,7 @@ class T1Daemon(Daemon):
                 self.results.append('FALSE')
             # self.__timer_state = parametros['timer_state']
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"t1Class: Mando {event.operacion} a nodo {event.nodo_objetivo}", "t1daemon")
+                       f"ID:{self.daemon_id} Mando operacion:{event.operacion} a nodo objetivo:{event.nodo_objetivo} y programo timer", "t1daemon")
             invokeTask(nodo_info,
                        event.nodo_objetivo,
                        event.operacion,
@@ -57,20 +56,19 @@ class T1Daemon(Daemon):
                        event.prioridad,
                        "t1daemon"
                        )  # TODO: Agregar la variable del timer
-            add_result(nodo_info, event.parametros['id_copy'], "t1Class: Mando Timer", "t1daemon")
 
     # Cambiar por expiringTimer()
     def timer(self, nodo_info, event):
         """Utiliza nodo_info para obtener la informacion del nodo donde vive, como el id y el clock """
         add_result(nodo_info, event.parametros['id_copy'],
-                   f'Timer desde T1Daemon {event.target_element_id}', "t1daemon")
+                   f'ID:{self.daemon_id} Timer expirado.', "t1daemon")
         parametros = copy.copy(event.parametros)
         index_operacion = event.parametros["id_operacion"]
         if self.results[index_operacion]:
             """Ya llego la confirmacion de que la tarea se completo, el daemon queda libre y se tiene que limpiar
             los atributos para futuros usos distintos a storage
             """
-            add_result(nodo_info, event.parametros['id_copy'], "LLego el resultado antes de expirar el timer",
+            add_result(nodo_info, event.parametros['id_copy'], f"ID:{self.daemon_id} Ya habia llegado el resultado.",
                        "t1daemon")
         else:
             if parametros['timer_state'] < Config.T1_TIMER_STATE:

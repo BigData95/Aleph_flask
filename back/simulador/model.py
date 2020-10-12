@@ -21,7 +21,7 @@ class Model(metaclass=ABCMeta):
         self.clock = 0.0
         
         # Es buena practica poner todos los atributos dentro del init. Aunque no se inicialicen ahi
-        # Quiza setProcess deberia ser el verdadero __init__.
+        # Quiza setProcess deberia ser el verdadero __init__ ?.
         self.process = None
         self.neighbors = None
         self.id = None

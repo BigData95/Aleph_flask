@@ -65,19 +65,19 @@ class Aleph(Model):
         self.proxy = Proxy()
         self.qManager = QManager()
 
-        self.buffer = list()
+        self.buffer = []
         for buffer_id in range(Config.BUFFERS):
             self.buffer.append(Buffer(buffer_id))
 
-        self.t1_daemons = list()
+        self.t1_daemons = []
         for daemon_id in range(Config.T1_DAEMONS):
             self.t1_daemons.append(T1Daemon(daemon_id))
 
-        self.t2_daemons = list()
+        self.t2_daemons = []
         for daemon_id in range(Config.T2_DAEMONS):
             self.t2_daemons.append(T2Daemon(daemon_id))
 
-        self.t3_daemons = list()
+        self.t3_daemons = []
         for daemon_id in range(Config.T3_DAEMONS):
             self.t3_daemons.append(T3Daemon(daemon_id))
 
@@ -88,24 +88,21 @@ class Aleph(Model):
         self.caretaker_proxy = Caretaker(self.proxy)
         self.caretaker_qmanager = Caretaker(self.qManager)
 
-        self.caretakers_t1daemon = list()
+        self.caretakers_t1daemon = []
         for daemon_id in range(len(self.t1_daemons)):
             self.caretakers_t1daemon.append(Caretaker(self.t1_daemons[daemon_id]))
 
-        # [self.caretakers_t1daemon.append(Caretaker(self.t1_daemons[daemon_id]))
-        #  for daemon_id in range(len(self.t1_daemons))]
+        self.caretakers_t2daemon = []
+        for daemon_id in range(len(self.t2_daemons)):
+            self.caretakers_t2daemon.append(Caretaker(self.t2_daemons[daemon_id]))
 
-        self.caretakers_t2daemon = list()
-        [self.caretakers_t2daemon.append(Caretaker(self.t2_daemons[daemon_id]))
-         for daemon_id in range(len(self.t2_daemons))]
+        self.caretakers_t3daemon = []
+        for daemon_id in range(len(self.t3_daemons)):
+            self.caretakers_t3daemon.append(Caretaker(self.t3_daemons[daemon_id]))
 
-        self.caretakers_t3daemon = list()
-        [self.caretakers_t3daemon.append(Caretaker(self.t3_daemons[daemon_id]))
-         for daemon_id in range(len(self.t3_daemons))]
-
-        self.caretakers_buffer = list()
-        [self.caretakers_buffer.append(Caretaker(self.buffer[buffer_id]))
-         for buffer_id in range(len(self.buffer))]
+        self.caretakers_buffer = []
+        for daemon_id in range(len(self.buffer)):
+            self.caretakers_buffer.append(Caretaker(self.buffer[buffer_id]))
 
         self.snapshot = None
 
@@ -193,9 +190,7 @@ def save_state(self):
     self.caretaker_qmanager.save()
 
     # Para los elementos propios no se usa el patron memento
-    # self.snapshot = {'prueba': self.prueba}
 
-    # TODO: agregar propiedades que faltan
 
 
 def restore_state(self) -> None:
@@ -226,6 +221,7 @@ def cliente_do(self, event):
         if accion == 1:
             self.cliente.store(self)
     if event.name == "CONFIRM":
+        print(f"CLiente: {event.parametros}")
         self.cliente.confirm(self, event)
 
 
@@ -272,27 +268,24 @@ def qManager_do(self, event):  # QManager
             self.qManager.store(self, event, 1)
 
         if event.operacion == "RETRIEVE":
-            print("Ver diagrama Retrieeval process, first phase")
+            #print("Ver diagrama Retrieeval process, first phase")
             self.qManager.retrieve_t1daemon()
 
         if event.operacion == "PROCESS":
+            #print("###########Ver diagrama Storage process, last phase/second phase")
             self.qManager.store(self, event, 1)
-            print("###########Ver diagrama Storage process, last phase/second phase")
+
         if event.operacion == "ELIMINATECOPY":
             print("Ver diagrama Storage process, second phase")
 
     if event.name == "T2DaemonID":
-        if event.operacion == "STORE":  # todo: Quiza esta demas ?
+        if event.operacion == "STORE": 
             self.qManager.store(self, event, 2)
             # print("Ver diagrama Storage process, second phase")
 
     if event.name == "T3DaemonID":
         if event.operacion == "STORE":
-            add_result(self, event.parametros['id_copy'], "Para el T3Daemon", "qmanager")
             self.qManager.store(self, event, 3)
-
-        # ! ESTO DEBERIA DE ESTAR POR SEPARADO, PARA QUE ESTE EN CONTINUA EJECUCION SIN IMPORTAR LOS MENSAJES QUE LE
-        # LLEGUEN
 
     # Se encarga de desencolar operaciones siempre que sea posible
     if 'id_copy' in event.parametros:
@@ -302,7 +295,6 @@ def qManager_do(self, event):  # QManager
         self.qManager.daemon_do(self)
 
     if event.name == "FREE":
-        # TODO: Daemon do que vaya dirigido solo a ese deamon sin tener que hacer todo lo demas
         self.qManager.daemon_do(self, event.parametros['id_copy'])
 
 
@@ -331,8 +323,8 @@ def t2_Daemon_do(self, event):
 
 
 def t3_Daemon_do(self, event):
+    add_result(self, event.parametros['id_copy'], "##T3Daemon", "t3daemon")
     if event.name == "EXECUTE":
-        add_result(self, event.parametros['id_copy'], "Este es el T3Daemon: Execute", "t3daemon")
         self.t3_daemons[event.target_element_id].execute(self, event)
     if event.name == "TIMER_CLONE":
         self.t3_daemons[event.target_element_id].timer(self, event)

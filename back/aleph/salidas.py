@@ -14,7 +14,7 @@ class Globals:
     ]
 
 
-def add_result(self, id_copy, contenido, color="all"):
+def add_result(self: object, id_copy: object, contenido: str, color: str = "all"):
     Globals.resultado_ids[id_copy][0].append(f'[{self.clock}|{self.id}]: {contenido}')
     Globals.resultado_ids[id_copy][1].append(color)
     # print(f'[{self.clock}]: {contenido}')

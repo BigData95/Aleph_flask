@@ -24,7 +24,8 @@ class Proxy:
 
     def confirm(self, nodo_info, event):
         # EL resultado viene en event.operacion
-        add_result(nodo_info, event.parametros['id_copy'], "LLego confirmacion a Proxy, hago update", "proxy")
+        add_result(nodo_info, event.parametros['id_copy'], "##Proxy##", "proxy")
+        add_result(nodo_info, event.parametros['id_copy'], "LLego confirmacion. Hago update", "proxy")
         if event.operacion == "SUCESS":
             # Buscamos si ya teniamos registro del id_file anteriormente
             for file in self.cont_copies['id_file']:
@@ -33,20 +34,22 @@ class Proxy:
                     index = self.cont_copies['id_file'].index(file)
                     self.cont_copies['copies_store'][index] += 1
                     if self.cont_copies['copies_store'][index] >= Config.CONFIRM_COPIES:
-                        confirmReport(nodo_info, "SUCESS", nodo_info.id, "cliente")
+                        add_result(nodo_info, event.parametros['id_copy'], "Mando confirmacion al cliente.", 'proxy')
+                        confirmReport(nodo_info, "SUCESS", nodo_info.id, "cliente", event.parametros)
                     break
             else:
                 self.cont_copies['id_file'].append(event.parametros['id_file'])
                 self.cont_copies['copies_store'].append(1)
                 # Realmente entra a este if solo si Config.CONFIRM_COPIES es igual a cero.
                 if self.cont_copies['copies_store'][-1] >= Config.CONFIRM_COPIES:
-                    confirmReport(nodo_info, "SUCESS", nodo_info.id, "cliente")
+                    add_result(nodo_info, event.parametros['id_copy'], "Mando confirmacion al cliente.", 'proxy')
+                    confirmReport(nodo_info, "SUCESS", nodo_info.id, "cliente", event.parametros)
             self.record['id_file'].append(event.parametros['id_file'])
             self.record['nodo_id'].append(event.nodo_objetivo)
-
-    @staticmethod
-    def retrive():
-        pass
+    #
+    # @staticmethod
+    # def retrive():
+    #     pass
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?

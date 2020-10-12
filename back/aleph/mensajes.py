@@ -1,4 +1,6 @@
 from back.simulador.event import Event
+
+
 # from .salidas import add_result, add_all
 
 
@@ -35,7 +37,7 @@ class Mensaje(Event):
                  lista_fallo=None,
                  tiempo_fallo=None,
                  tiempo_recuperacion=None,
-                #  puerto=0
+                 #  puerto=0
                  ):
         Event.__init__(self, name, time, target, source, port=0)
         # self.__puerto = port
@@ -198,6 +200,7 @@ def startTimer(self, parametros, operacion, daemon_id, nodo_objetivo, prioridad,
     # Parametros: --> [newFileName, IdCopia,[result,reported],state]
     self.transmit(newEvent)
 
+
 # def startTimer2()
 
 
@@ -268,20 +271,19 @@ def insert(self,
         parametros['timer'] = timer
         parametros['charge_daemon'] = charge_daemon
         newevent = Mensaje(daemon,
-                self.clock + timer,
-                target,
-                source,
-                parametros,
-                operacion,
-                "qmanager",
-                elemento_interno_remitente, 
-                daemon_id,
-                daemon_id, 
-                nodo_objetivo,
-                prioridad
-        )
+                           self.clock + timer,
+                           target,
+                           source,
+                           parametros,
+                           operacion,
+                           "qmanager",
+                           elemento_interno_remitente,
+                           daemon_id,
+                           daemon_id,
+                           nodo_objetivo,
+                           prioridad
+                           )
         self.transmit(newevent)
-        
 
     if daemon == "T2DaemonID":
         if 'taskReplica' not in parametros:
@@ -298,8 +300,7 @@ def insert(self,
                 prioridad,
                 daemon_id,
                 daemon_id
-        )
-
+                )
 
 
 def store(self, parametros, target):
@@ -330,7 +331,7 @@ def mensajeDaemon(self, name, daemon_id, tipo_operacion, tipo_daemon, id_copy):
             name,
             self.id,
             self.id,
-            {'id_copy':id_copy},
+            {'id_copy': id_copy},
             tipo_operacion,  # operacion
             "qmanager",
             tipo_daemon,
@@ -376,11 +377,11 @@ def confirmStorage(self, operacion, destino, destino_interno, parametros=None, n
 def confirmReport(self, resultado, destino, destino_interno, parametros=None, nodo_objetivo=None):
     mensaje(self,
             "CONFIRM",
-            destino, 
+            destino,
             self.id,
             parametros,
             resultado,
-            destino_interno, 
+            destino_interno,
             nodo_objetivo=nodo_objetivo,
             )
 
@@ -394,9 +395,8 @@ def kill_clone(self, clone_id, source_element, source_element_id):
             elemento_interno_objetivo='t3daemon',
             elemento_interno_remitente=source_element,
             elem_int_obj_id=0,
-            elem_int_rem_id= source_element_id
-    )
-
+            elem_int_rem_id=source_element_id
+            )
 
 # # Tiene un resultado: SUCESS or FAILURE
 # def reportResults(self, resultado, destino, destino_interno):
