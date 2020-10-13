@@ -118,7 +118,7 @@ def iterar_daemon(self, nodo_info, queue: list, free_daemons: int, prioridad: st
             if queue[iterador]['id_daemon_objetivo'] is not None:
                 # Quiere decir que el insert lo hizo un daemon hacia si mismo.
                 index_daemon = queue[iterador]['id_daemon_objetivo']
-                if nodo_info.t1_daemon[index_daemon].status == "FREE":
+                if nodo_info.t1_daemons[index_daemon].status == "FREE":
                     encargoDaemon(self, nodo_info, prioridad, index_daemon, id_copy)
                     break
                 else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola

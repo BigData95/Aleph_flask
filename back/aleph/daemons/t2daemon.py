@@ -82,11 +82,11 @@ class T2Daemon(Daemon):
         # TODO: Esto esta al reves
         if self.results[event.parametros['id_operacion_t2daemon']]:
             add_result(nodo_info, event.parametros['id_copy'],
-                       "Timer: LLego la respuesta antes de expirar el timer, el clon ya se elimino. No hago insert",
+                       f"{self.daemon_id} Timer: LLego la respuesta antes de expirar el timer, el clon ya se elimino. No hago insert",
                        "t2daemon")
         else:
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"Timer: No ha llegado la respuesta {event.operacion},hago insert", "t2daemon")
+                       f"ID:{self.daemon_id} Timer: No ha llegado la respuesta de la operacion {event.operacion},hago insert", "t2daemon")
             event.parametros['taskReplica'] += 1
             insert(nodo_info,
                    "T2DaemonID",
@@ -105,10 +105,10 @@ class T2Daemon(Daemon):
     def confirm(self, nodo_info, event):
         if self.results[event.parametros['id_operacion_t2daemon']]:
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"Ya se habia confirmado esta la operacion {event.operacion}")
+                       f"ID:{self.daemon_id} Ya se habia confirmado esta la operacion {event.operacion}")
         else:
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"LLega confirmacion de operacion. Tengo que mata al clon: {event.parametros['id_clone']}",
+                       f"ID:{self.daemon_id} LLega confirmacion de operacion. Tengo que mata al clon: {event.parametros['id_clone']}",
                        "t2daemon")
             self.results[event.parametros['id_operacion_t2daemon']] = True
             parametros = {'id_clone': event.parametros['id_clone'], 'id_copy': event.parametros['id_copy']}

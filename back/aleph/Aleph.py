@@ -211,7 +211,7 @@ def restore_state(self) -> None:
     # for daemons in range(len(self.caretakers_t3daemon)):
     #     self.caretakers_t3daemon[daemons].restore()
     # self.prueba = self.snapshot['prueba']
-    self.snapshot.clear()
+    # self.snapshot.clear()
 
 
 def cliente_do(self, event):
@@ -221,7 +221,6 @@ def cliente_do(self, event):
         if accion == 1:
             self.cliente.store(self)
     if event.name == "CONFIRM":
-        print(f"CLiente: {event.parametros}")
         self.cliente.confirm(self, event)
 
 
@@ -243,7 +242,6 @@ def buffer_do(self, event):
         if event.name == "SUCESS" or event.name == "FAILURE":
             self.buffer[0].report_from_t1daemon(self, event)
         if event.name == "TASK":
-            # print("LLego task")
             if event.operacion == "STORE":
                 self.buffer[0].store_from_t1daemon(self, event)
             elif event.operacion == "PROCESS":
@@ -268,11 +266,11 @@ def qManager_do(self, event):  # QManager
             self.qManager.store(self, event, 1)
 
         if event.operacion == "RETRIEVE":
-            #print("Ver diagrama Retrieeval process, first phase")
+            #"Ver diagrama Retrieeval process, first phase")
             self.qManager.retrieve_t1daemon()
 
         if event.operacion == "PROCESS":
-            #print("###########Ver diagrama Storage process, last phase/second phase")
+            ############Ver diagrama Storage process, last phase/second phase")
             self.qManager.store(self, event, 1)
 
         if event.operacion == "ELIMINATECOPY":
@@ -281,7 +279,7 @@ def qManager_do(self, event):  # QManager
     if event.name == "T2DaemonID":
         if event.operacion == "STORE": 
             self.qManager.store(self, event, 2)
-            # print("Ver diagrama Storage process, second phase")
+            #"Ver diagrama Storage process, second phase")
 
     if event.name == "T3DaemonID":
         if event.operacion == "STORE":
@@ -299,7 +297,7 @@ def qManager_do(self, event):  # QManager
 
 
 def t1_Daemon_do(self, event):
-    add_result(self, event.parametros['id_copy'], f"##T1Daemon##", "t1daemon")
+    add_result(self, event.parametros['id_copy'], "##T1Daemon##", "t1daemon")
     # Ver: Que Manager & Type 1 Execution Daemon, with delayed answer
     if event.name == "EXECUTE":
         self.t1_daemons[event.target_element_id].execute(self, event)
@@ -323,7 +321,7 @@ def t2_Daemon_do(self, event):
 
 
 def t3_Daemon_do(self, event):
-    add_result(self, event.parametros['id_copy'], "##T3Daemon", "t3daemon")
+    add_result(self, event.parametros['id_copy'], "##T3Daemon##", "t3daemon")
     if event.name == "EXECUTE":
         self.t3_daemons[event.target_element_id].execute(self, event)
     if event.name == "TIMER_CLONE":

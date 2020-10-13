@@ -51,15 +51,15 @@ class T3Daemon(Daemon):
                    daemon_id=event.parametros['source_id']
                    )
         else:
-            add_result(nodo_info, event.parametros['id_copy'], "Este clon ya se mato, no se hace insert", "t3daemon")
+            add_result(nodo_info, event.parametros['id_copy'], f"Este clon {event.parametros['id_clone']} ya se mato, no se hace insert", "t3daemon")
 
     def kill(self, nodo_info, event):
         if event.parametros['id_clone'] in self.__clones:
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"Kill: LLega mensaje para eliminar clon{event.parametros['id_clone']}, lo eliminamos", "t3daemon")
+                       f"Kill: LLega mensaje para eliminar clon {event.parametros['id_clone']}, lo eliminamos", "t3daemon")
             self.__clones.remove(event.parametros['id_clone'])
         else:
-            pass
+            add_result(nodo_info, event.parametros['id_copy'], f"El clon {event.parametros['id_clone']} ya se habia eliminado, despachado o no ha llegado su timer", "t3daemon")
             # print(f"Clock:{nodo_info.clock}, KILL. No esta el clon {event.parametros['id_clone']}, esta en otro nodo o ya se elimino")
 
     def save(self) -> ConcreteMemento:

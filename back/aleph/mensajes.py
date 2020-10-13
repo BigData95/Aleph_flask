@@ -332,7 +332,7 @@ def mensajeDaemon(self, name, daemon_id, tipo_operacion, tipo_daemon, id_copy):
             self.id,
             self.id,
             {'id_copy': id_copy},
-            tipo_operacion,  # operacion
+            tipo_operacion,  # operacion  "t1daemon?"
             "qmanager",
             tipo_daemon,
             elem_int_obj_id=daemon_id  # elem_int_obj_id

@@ -16,6 +16,7 @@ class Buffer:
         self._state = None
         self.files_dispersando = []
         self.files = []
+        self.operaciones_despachadas = []
         # self.resultados = True # ya me llegaron los resultados? ver store_from_t1daemon
 
     @property
@@ -39,7 +40,6 @@ class Buffer:
             }
             # informacion['encargados'].append(copia, id_nodo)
 
-            print(f"Genera: nodo {nodo_info.id} Nodo generado por oracle: {id_nodo}, con id_copy: {copia}")
             insert(nodo_info,  # Para qManager
                    "T1DaemonID",
                    nodo_info.id,
@@ -98,18 +98,45 @@ class Buffer:
 
     # @staticmethod
     def store_from_t1daemon(self, nodo_info, event):
-        print(f"Nodo: {nodo_info.id}  Buffer clock: {nodo_info.clock} , store desde t1Daemon")
         clone = 0
         add_result(nodo_info, event.parametros['id_copy'], '##Buffer##', "buffer")
         add_result(nodo_info, event.parametros['id_copy'],
-                   f'Tengo que hacer {event.operacion} a peticion de T1DaemonID: {event.source_element_id} del nodo {event.source}',
+                   f'Tengo que hacer {event.operacion} a peticion de '
+                   f'T1DaemonID: {event.source_element_id} del nodo {event.source} id_file:{event.parametros["id_file"]}',
                    "buffer")
+        ya_despachado = False
+        # Ya fue despachado anteriormente alguna operacion relacionado al id_file que viene en los parametros?
+        lista_indexes = []
+        for index, operacion in enumerate(self.operaciones_despachadas):
+            if operacion.get('id_file', None) == event.parametros['id_file']:
+                print(f"Encontre un index perro {index}")
+                lista_indexes.append(index)
+        # Encontro index de la operaciones (Las listas vacias es un valor falsy)
+        if lista_indexes:
+            print("Ya se despacho compa")
+            print(f"{lista_indexes} y {self.operaciones_despachadas}")
+            #Ya se habia despachado antes, pero cual id_copy?
+            for element in lista_indexes:
+                if self.operaciones_despachadas[element]['id_copy'] == event.parametros['id_copy']:
+                    print("Esta operacion ya se habia despachado antes")
+                    ya_despachado = True
+                    confirmStorage(nodo_info,
+                                   "Ya despachado",
+                                   event.source,
+                                   "t1daemon",
+                                   event.parametros,
+                                   nodo_info.id,  # Nodo objetivo, soy yo mismo
+                                   event.source_element_id
+                                   )  # Lo regreso a quien me lo mando
 
-        if event.parametros['id_copy'] == 0:
+        if event.parametros['id_copy'] == 0 and not ya_despachado:
             add_result(nodo_info, event.parametros['id_copy'],
-                       "Ya esta guardado en el buffer, no hay riesgo de que se pierda. Mando confirmacion.", "buffer")
+                       f"Ya esta guardado en el buffer, no hay riesgo de que se pierda. Mando confirmacion. {self.operaciones_despachadas} despacho {ya_despachado}", "buffer")
             # Mas tarde algun t1Daemon te pedira que lo elimines.
             self.files.append(event.parametros['id_file'])
+            self.operaciones_despachadas.append(
+                {'id_file': event.parametros['id_file'], 'id_copy': event.parametros['id_copy']}
+            )
             confirmStorage(nodo_info,
                            event.operacion,
                            event.source,
@@ -119,12 +146,13 @@ class Buffer:
                            event.source_element_id
                            )  # Lo regreso a quien me lo mando
 
-        elif event.parametros['id_copy'] == 1 or ('new_id_copy' in event.parametros):
+        elif (event.parametros['id_copy'] == 1 or 'new_id_copy' in event.parametros) and not ya_despachado:
             clone += 1
-            add_result(nodo_info, event.parametros['id_copy'], f"Voy a dispersar a {event.parametros['id_file']}", "buffer")
+            add_result(nodo_info, event.parametros['id_copy'], f"Voy a dispersar a {event.parametros['id_file']}",
+                       "buffer")
             self.process(nodo_info, event)
 
-        elif event.parametros["id_copy"] > 1 or clone >= 2:
+        elif (event.parametros["id_copy"] > 1 or clone >= 2) and not ya_despachado:
             # Creamos clon
             parametros = copy.copy(event.parametros)
             parametros['new_id_copy'] = 1
@@ -135,9 +163,8 @@ class Buffer:
             file_pendiente = {'id_file': parametros['id_file'], 'id_clone': parametros['id_clone']}
             # Solo a quien le toque el NumCopy == 1 hace uso de self.clones_pendientes
             self.clones_pendientes.append(file_pendiente)
-            add_result(nodo_info, event.parametros['id_copy'], f"Mando instruccion para crear clon id: {parametros['id_clone']}", "buffer")
-            # print(
-            #     f"Nodo {nodo_info.id} Creamos clone en buffer {self.clones_pendientes}")
+            add_result(nodo_info, event.parametros['id_copy'],
+                       f"Mando instruccion para crear clon id: {parametros['id_clone']}", "buffer")
             insert(nodo_info,
                    "T3DaemonID",
                    nodo_info.id,
@@ -208,9 +235,8 @@ class Buffer:
                 dispersos = self.disperse(fragmento)
                 dispersando = {'id_file': event.parametros['id_file'], 'dispersos_pendientes': len(dispersos)}
                 self.files_dispersando.append(dispersando)
-                print(
-                    f"Nodo:{nodo_info.id} Clock {nodo_info.clock} Se crearan {len(dispersos)} T2Daemon por los dipersos, pendientes {self.files_dispersando}")
-                add_result(nodo_info, event.parametros['id_copy'], f"Se van almancear {len(dispersos)} dispersos","buffer")
+                add_result(nodo_info, event.parametros['id_copy'], f"Se van almancear {len(dispersos)} dispersos",
+                           "buffer")
                 for disperso in range(len(dispersos)):
                     id_nodo = invokeOracle()
                     parametros = copy.copy(event.parametros)

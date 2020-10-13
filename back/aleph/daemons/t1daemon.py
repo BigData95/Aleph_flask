@@ -11,13 +11,12 @@ class T1Daemon(Daemon):
     def __init__(self, daemon_id, status="FREE"):
         Daemon.__init__(self, daemon_id, status)
         self._state = None
-        self.__status = None
+        # self.__status = None
         self.results = []
         self.__id_operacion = 0
 
     # @staticmethod
     def execute(self, nodo_info, event):
-        # print(f"Nodo: {nodo_info.id} Clock: {nodo_info.clock} T1Daemon Execute {event.nodo_objetivo}")
         # add_result(nodo_info, event.parametros['id_copy'],
         #            f'Execute desde T1Daemon {event.target_element_id}', "t1daemon")
         if nodo_info.target_status == "suspected":
@@ -31,7 +30,7 @@ class T1Daemon(Daemon):
                    event.operacion,
                    event.nodo_objetivo)
         else:  # Target is supposed to be ok
-            self.__status = "BUSY"
+            self.status = "BUSY"
             parametros = copy.copy(event.parametros)
             if 'timer_state' not in parametros:
                 parametros['timer_state'] = 0
@@ -64,7 +63,7 @@ class T1Daemon(Daemon):
                    f'ID:{self.daemon_id} Timer expirado.', "t1daemon")
         parametros = copy.copy(event.parametros)
         index_operacion = event.parametros["id_operacion"]
-        if self.results[index_operacion]:
+        if self.results[index_operacion] == True:
             """Ya llego la confirmacion de que la tarea se completo, el daemon queda libre y se tiene que limpiar
             los atributos para futuros usos distintos a storage
             """
@@ -97,7 +96,7 @@ class T1Daemon(Daemon):
                        event.operacion
                        )
             # Aviso que ya estoy disponible
-        self.__status = "FREE"
+        self.status = "FREE"
         mensajeDaemon(nodo_info, "FREE", self.daemon_id, "t1daemon", "1", event.parametros['id_copy'])
 
 
@@ -106,12 +105,18 @@ class T1Daemon(Daemon):
         Cuando llega una confirmacion del nodo a quien se le mando el trabajo, manda el report con SUCESS \n
         No le importa el estado del timer. Pero con self.results le avisa al timer
         """
-        add_result(nodo_info, event.parametros['id_copy'],
-                   f"T1Daemon:{self.daemon_id}: Llego confirmacion de la operacion desde nodo:{event.source}, Mando "
-                   f"report", "t1daemon")
+        print(f"Se confirma la opercion del t1Daemon {self.daemon_id} {event.operacion}")
         index_operacion = event.parametros["id_operacion"]
         self.results[index_operacion] = True
-        report(nodo_info, "SUCESS", self.daemon_id, event.parametros, event.nodo_objetivo, operacion=event.operacion)
+        if event.operacion != "Ya despachado":        
+            # add_result(nodo_info, event.parametros['id_copy'], "ID ", "t1daemon") add_result(nodo_info,
+            add_result(nodo_info, event.parametros['id_copy'],
+                       f"ID:{self.daemon_id}: Llego confirmacion de la operacion desde nodo:{event.source}, "
+                       f"Mando report", "t1daemon")
+            report(nodo_info, "SUCESS", self.daemon_id, event.parametros, event.nodo_objetivo, operacion=event.operacion)
+        else:
+            add_result(nodo_info, event.parametros['id_copy'], f"ID:{self.daemon_id}. El nodo objetivo ya habia procesado la operacion", "t1daemon")
+            print(f"Ya se habia despachado esta taresa {event.operacion}")
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
