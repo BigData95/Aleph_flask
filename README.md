@@ -1,10 +1,7 @@
 # Aleph Simulator
 
-<p align="center">
-  <a href="https://deepsource.io/gh/BigData95/Aleph_flask/"
-  <img src="https://static.deepsource.io/deepsource-badge-light.svg">
-  </a>
-</p>
+
+[![Deep Source](https://static.deepsource.io/deepsource-badge-light.svg)](https://deepsource.io/gh/BigData95/Aleph_flask/)
 
 
 
