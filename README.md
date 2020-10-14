@@ -1,10 +1,11 @@
-
-
 # Aleph Simulator
 
 <p align="center">
-[![DeepSource](https://static.deepsource.io/deepsource-badge-light.svg)](https://deepsource.io/gh/BigData95/Aleph_flask/)
+  <a href="https://deepsource.io/gh/BigData95/Aleph_flask/"
+  <img src="https://static.deepsource.io/deepsource-badge-light.svg">
+  </a>
 </p>
+
 
 
 It's a web app created with Flask, it allow you to:
