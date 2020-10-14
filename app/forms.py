@@ -2,10 +2,10 @@
 from flask_wtf import FlaskForm
 from wtforms.fields import (
     SubmitField,
-    FileField,
     BooleanField,
     StringField,
     IntegerField
+    # FileField,
 )
 from wtforms.validators import ValidationError, DataRequired, Optional, NumberRange
 
@@ -27,7 +27,7 @@ class RequiredIf(DataRequired):
     """
     field_flags = ('requiredif',)
 
-    def __init__(self, other_field_name, message=None, *args, **kwargs):
+    def __init__(self, other_field_name, message=None):
         self.other_field_name = other_field_name
         self.message = message
 

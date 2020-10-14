@@ -121,10 +121,10 @@ def iterar_daemon(self, nodo_info, queue: list, free_daemons: int, prioridad: st
                 if nodo_info.t1_daemons[index_daemon].status == "FREE":
                     encargoDaemon(self, nodo_info, prioridad, index_daemon, id_copy)
                     break
-                else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola
-                    print(
-                        f"No esta disponible el T1daemon {queue[iterador]['id_daemon_objetivo']}, clock: {nodo_info.clock}")
-                    continue
+                # else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola
+                #     print(
+                #         f"No esta disponible el T1daemon {queue[iterador]['id_daemon_objetivo']}, clock: {nodo_info.clock}")
+                #     continue
             else:
                 get_free_daemon = freeDaemon(nodo_info.t1_daemons)
                 if get_free_daemon != -1:
@@ -146,9 +146,9 @@ def iterar_daemon(self, nodo_info, queue: list, free_daemons: int, prioridad: st
                 if nodo_info.t2_daemons[index_daemon].status == "FREE":
                     encargoDaemon(self, nodo_info, prioridad, index_daemon, id_copy)
                     break
-                else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola
-                    print(f"No esta disponible el T2daemon {queue[iterador]['id_daemon_objetivo']}")
-                    continue
+                # else:  # No esta disponible el daemon, vamos al siguiente elemento de la cola
+                #     print(f"No esta disponible el T2daemon {queue[iterador]['id_daemon_objetivo']}")
+                #     continue
             else:
                 get_free_daemon = freeDaemon(nodo_info.t2_daemons)
                 if get_free_daemon != -1:

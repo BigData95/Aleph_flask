@@ -139,7 +139,7 @@ class Buffer:
 
         if event.parametros['id_copy'] == 0 and not ya_despachado:
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"Ya esta guardado en el buffer, no hay riesgo de que se pierda. Mando confirmacion.", "buffer")
+                       "Ya esta guardado en el buffer, no hay riesgo de que se pierda. Mando confirmacion.", "buffer")
             # Mas tarde algun t1Daemon te pedira que lo elimines.
             self.files.append(event.parametros['id_file'])
             self.operaciones_despachadas.append(

@@ -63,7 +63,7 @@ class T1Daemon(Daemon):
                    f'ID:{self.daemon_id} Timer expirado.', "t1daemon")
         parametros = copy.copy(event.parametros)
         index_operacion = event.parametros["id_operacion"]
-        if self.results[index_operacion] == True:
+        if self.results[index_operacion] is True:
             """Ya llego la confirmacion de que la tarea se completo, el daemon queda libre y se tiene que limpiar
             los atributos para futuros usos distintos a storage
             """
