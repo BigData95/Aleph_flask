@@ -6,7 +6,7 @@ from .mensajes import Mensaje
 from .salidas import regresa
 
 
-def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
+def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None, nodo_oracle_1=None, nodo_oracle_2=None, nodo_oracle_3=None):
     """
     Se llama desde app/auth/views.py
     Se hace la validacion de lista_fallo, tiempo_fallo y tiempo_recuperacion para que
@@ -32,15 +32,27 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None):
         print(f'Estos son los tiempos de recuperacion {tiempo_recuperacion}')
 
     # inserta un evento semilla en la agenda y arranca
-    seed = Mensaje(
-        "DESPIERTA",
-        0.0,  # Tiempo
-        1,  # Target
-        1,  # Source
-        lista_fallo=lista_fallo,
-        tiempo_fallo=tiempo_fallo,
-        tiempo_recuperacion=tiempo_recuperacion
-    )
+    if nodo_oracle_1 is not None:
+        seed = Mensaje(
+            "DESPIERTA",
+            0.0,  # Tiempo
+            1,  # Target
+            1,  # Source
+            lista_fallo=lista_fallo,
+            tiempo_fallo=tiempo_fallo,
+            tiempo_recuperacion=tiempo_recuperacion,
+            extras=[nodo_oracle_1, nodo_oracle_2, nodo_oracle_3]
+        )
+    else:
+        seed = Mensaje(
+            "DESPIERTA",
+            0.0,  # Tiempo
+            1,  # Target
+            1,  # Source
+            lista_fallo=lista_fallo,
+            tiempo_fallo=tiempo_fallo,
+            tiempo_recuperacion=tiempo_recuperacion
+        )
     experiment.init(seed)
 
     # En este punto lista_fallo ya es una lista.

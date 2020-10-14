@@ -15,12 +15,12 @@ class Proxy:
 
     @staticmethod
     def store(nodo_info, event):
-        add_all(nodo_info, "##Proxy")
-        add_all(nodo_info, f'Proxy de: {nodo_info.id}, uso buffer')
+        add_all(nodo_info, "##Proxy", "proxy")
+        add_all(nodo_info, 'Genero nombre archivo', "proxy")
         file_, file_name = event.parametros
         new_name = generateNewName(file_name)
         parametros = [file_, new_name, Config.NUM_COPIES]  # FileID es NewName
-        store(nodo_info, parametros, nodo_info.id)  # Para buffer
+        store(nodo_info, parametros, nodo_info.id, event.extras)  # Para buffer
 
     def confirm(self, nodo_info, event):
         # EL resultado viene en event.operacion

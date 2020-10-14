@@ -1,5 +1,5 @@
 from back.simulador.event import Event
-
+from back.aleph.config import Config
 
 # from .salidas import add_result, add_all
 
@@ -37,6 +37,7 @@ class Mensaje(Event):
                  lista_fallo=None,
                  tiempo_fallo=None,
                  tiempo_recuperacion=None,
+                 extras=None
                  #  puerto=0
                  ):
         Event.__init__(self, name, time, target, source, port=0)
@@ -52,6 +53,7 @@ class Mensaje(Event):
         self.__lista_fallo = lista_fallo
         self.__tiempo_fallo = tiempo_fallo
         self.__tiempo_recuperacion = tiempo_recuperacion
+        self.__extras = extras
 
     @property
     def operacion(self):
@@ -96,6 +98,10 @@ class Mensaje(Event):
     @property
     def tiempo_recuperacion(self):
         return self.__tiempo_recuperacion
+    
+    @property
+    def extras(self):
+        return self.__extras
 
 
 def mensaje(self,
@@ -110,6 +116,7 @@ def mensaje(self,
             prioridad=None,
             elem_int_obj_id=None,
             elem_int_rem_id=None,
+            extras=None
             ):
     """ Mandar mensajer completos
         Los parametros con valores por default pueden ser prescindibles en algunos mensajes especificos
@@ -131,7 +138,8 @@ def mensaje(self,
                        elem_int_obj_id,
                        elem_int_rem_id,
                        nodo_objetivo,
-                       prioridad
+                       prioridad,
+                       extras=extras
                        )
     self.transmit(newevent)
 
@@ -181,14 +189,14 @@ def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_
                 )
 
 
-# Timer de t1Daemon
-def startTimer(self, parametros, operacion, daemon_id, nodo_objetivo, prioridad, tipo_daemon, timer_value=1):
+# Timer de t1Daemon y t2Daemon
+def startTimer(self, parametros, operacion, daemon_id, nodo_objetivo, prioridad, tipo_daemon, timer_value=Config.DAEMON_TIMER):
     # No confundir con el metodo "mensaje", en ese metodo no puedes manipular el tiempo en el que se manda.
     newEvent = Mensaje("TIMER",
                        self.clock + timer_value,
                        self.id,
                        self.id,
-                       parametros,  # parametros
+                       parametros,
                        operacion,
                        tipo_daemon,
                        tipo_daemon,
@@ -197,7 +205,6 @@ def startTimer(self, parametros, operacion, daemon_id, nodo_objetivo, prioridad,
                        nodo_objetivo,
                        prioridad
                        )
-    # Parametros: --> [newFileName, IdCopia,[result,reported],state]
     self.transmit(newEvent)
 
 
@@ -303,7 +310,7 @@ def insert(self,
                 )
 
 
-def store(self, parametros, target):
+def store(self, parametros, target, extras=None):
     # Viene del cliente
     if len(parametros) < 3:
         mensaje(self,
@@ -311,7 +318,8 @@ def store(self, parametros, target):
                 target,
                 self.id,
                 parametros,
-                elemento_interno_objetivo="proxy"
+                elemento_interno_objetivo="proxy",
+                extras=extras
                 )
     # Viene del Proxy
     else:
@@ -321,7 +329,8 @@ def store(self, parametros, target):
                 self.id,
                 parametros,
                 elemento_interno_objetivo="buffer",
-                elemento_interno_remitente="proxy"
+                elemento_interno_remitente="proxy",
+                extras=extras
                 )
 
 

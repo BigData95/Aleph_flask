@@ -16,7 +16,10 @@ def simulador():
             resultados = Aleph.inicia(
                 fallo_form.nodos_fallo.data,
                 fallo_form.tiempo_fallo.data,
-                fallo_form.tiempo_recuperacion.data
+                fallo_form.tiempo_recuperacion.data,
+                fallo_form.nodo_selecionado_1.data,
+                fallo_form.nodo_selecionado_2.data,
+                fallo_form.nodo_selecionado_3.data
             )
         else:
             resultados = salidas.clear()

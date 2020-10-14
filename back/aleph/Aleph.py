@@ -219,7 +219,7 @@ def cliente_do(self, event):
         print("Que tipo de accion quieres realizar \n1)Store\n2)Retrieve\n")
         accion = 1
         if accion == 1:
-            self.cliente.store(self)
+            self.cliente.store(self, event)
     if event.name == "CONFIRM":
         self.cliente.confirm(self, event)
 

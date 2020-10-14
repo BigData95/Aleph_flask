@@ -11,12 +11,12 @@ class Cliente:
         pass
 
     @staticmethod
-    def store(nodo_info):
+    def store(nodo_info, event):
         destino = random.randint(Config.NODO_PROXY_LOWER, Config.NODO_PROXY_UPPER)  # ID del nodo
         # Los parametros vienen del cliente
         parametros = ["file", "file_name"]
-        store(nodo_info, parametros, destino)
-        add_all(nodo_info, f'Mando Store al Proxy:{destino}')
+        store(nodo_info, parametros, destino, event.extras)
+        add_all(nodo_info, f'Mando Store al Proxy:{destino}', "cliente")
 
     def retrive(self):
         pass

@@ -26,9 +26,16 @@ class Buffer:
     @staticmethod
     def store_from_proxy(nodo_info, event):
         file_, new_name, num_copy = event.parametros
-        # informacion = {'file': new_name, 'encargados': list()}
         for copia in range(num_copy):
-            id_nodo = invokeOracle()
+            if event.extras is not None:
+                print(event.extras)
+                try:
+                    id_nodo = event.extras[copia]
+                except IndexError:
+                    print("Algo paso en la lista de nodos, generando uno aleatorio")
+                    id_nodo = invokeOracle()
+            else:
+                id_nodo = invokeOracle()
             add_result(nodo_info, copia, "##Buffer##", "buffer")
             add_result(nodo_info, copia,
                        f'Id del nodo regresado por oraculo: {id_nodo}', "buffer")
@@ -55,7 +62,7 @@ class Buffer:
         add_result(nodo_info, event.parametros['id_copy'], "##Buffer##", "buffer")
         if event.name == "FAILURE" and event.parametros["reported"] < Config.MAX_FAILURES:
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"La operacion {event.operacion} fallo, lo intentamos de nuevo", "buffer")
+                       f"LLego report de t1Daemon: Failure. La operacion {event.operacion} fallo, lo intentamos de nuevo", "buffer")
             insert(nodo_info,
                    "T1DaemonId",
                    nodo_info.id,
@@ -67,7 +74,7 @@ class Buffer:
                    )
         else:
             if event.name == "SUCESS":
-                add_result(nodo_info, event.parametros["id_copy"], f"Operacion {event.operacion} exitosa", "buffer")
+                add_result(nodo_info, event.parametros["id_copy"], f"LLego report de t1Daemon: SUCESS Operacion {event.operacion} exitosa", "buffer")
             else:  # event.parametros["reported"] > Config.MAX_FAILURES
                 add_result(nodo_info, event.parametros["id_copy"], f"Operacion {event.operacion} FAILURE", "buffer")
             event.parametros['resultado'] = "SUCESS"
@@ -77,7 +84,7 @@ class Buffer:
     def confirm(self, nodo_info, event):
         add_result(nodo_info, event.parametros['id_copy'], "##Buffer##", "buffer")
         if event.source_element == 't2daemon':
-            add_result(nodo_info, event.parametros['id_copy'], "Llego resultado de la dispersion", "buffer")
+            add_result(nodo_info, event.parametros['id_copy'], f"Llego resultado de alguna dispersion de {event.parametros['id_file']}", "buffer")
 
             # Busco si el id_file esta en los files que estamos esperando.
             index = next((i for i, files in enumerate(self.files_dispersando)
@@ -119,6 +126,7 @@ class Buffer:
             for element in lista_indexes:
                 if self.operaciones_despachadas[element]['id_copy'] == event.parametros['id_copy']:
                     print("Esta operacion ya se habia despachado antes")
+                    add_result(nodo_info, event.parametros['id_copy'], "Esta operacion ya se habia despachado antes", "buffer")
                     ya_despachado = True
                     confirmStorage(nodo_info,
                                    "Ya despachado",
@@ -131,7 +139,7 @@ class Buffer:
 
         if event.parametros['id_copy'] == 0 and not ya_despachado:
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"Ya esta guardado en el buffer, no hay riesgo de que se pierda. Mando confirmacion. {self.operaciones_despachadas} despacho {ya_despachado}", "buffer")
+                       f"Ya esta guardado en el buffer, no hay riesgo de que se pierda. Mando confirmacion.", "buffer")
             # Mas tarde algun t1Daemon te pedira que lo elimines.
             self.files.append(event.parametros['id_file'])
             self.operaciones_despachadas.append(
@@ -148,9 +156,17 @@ class Buffer:
 
         elif (event.parametros['id_copy'] == 1 or 'new_id_copy' in event.parametros) and not ya_despachado:
             clone += 1
-            add_result(nodo_info, event.parametros['id_copy'], f"Voy a dispersar a {event.parametros['id_file']}",
+            add_result(nodo_info, event.parametros['id_copy'], f"Voy a dispersar a file:{event.parametros['id_file']}",
                        "buffer")
             self.process(nodo_info, event)
+            confirmStorage(nodo_info,
+                           "Procesamiento",
+                           event.source,
+                           "t1daemon",
+                           event.parametros,
+                           nodo_info.id,  # Nodo objetivo, soy yo mismo
+                           event.source_element_id
+                           )  # Lo regreso a quien me lo mando
 
         elif (event.parametros["id_copy"] > 1 or clone >= 2) and not ya_despachado:
             # Creamos clon
@@ -177,6 +193,14 @@ class Buffer:
                    timer=Config.CLONE_TIMER,
                    charge_daemon="t1daemon"
                    )
+            confirmStorage(nodo_info,
+                           "Creacion Clon",
+                           event.source,
+                           "t1daemon",
+                           event.parametros,
+                           nodo_info.id,  # Nodo objetivo, soy yo mismo
+                           event.source_element_id
+                           )  # Lo regreso a quien me lo mando
 
     @staticmethod
     def store_from_t2daemon(nodo_info, event):
@@ -184,7 +208,7 @@ class Buffer:
         Solo se almacena. Se trata de algun disperso procesado por t2Daemon
         """
         add_result(nodo_info, event.parametros['id_copy'],
-                   f"Llego {event.operacion} de algun t2Daemon. Le mando confirmacion", "buffer")
+                   f"Llego {event.operacion} de t2DaemonID:{event.source_element_id}, para {event.parametros['id_file']} Mando confirmacion", "buffer")
         confirmStorage(nodo_info, event.name, event.source, "t2daemon",
                        event.parametros, daemon_id=event.source_element_id)
 

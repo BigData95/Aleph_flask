@@ -1,12 +1,19 @@
+# De Flask
 from flask_wtf import FlaskForm
 from wtforms.fields import (
-                            SubmitField,
-                            FileField,
-                            BooleanField,
-                            StringField
-                            )
-from wtforms.validators import ValidationError, DataRequired
+    SubmitField,
+    FileField,
+    BooleanField,
+    StringField,
+    IntegerField
+)
+from wtforms.validators import ValidationError, DataRequired, Optional, NumberRange
 
+
+# De Aleph
+from back.aleph.config import Config
+
+# Utilidades
 import re
 
 
@@ -31,7 +38,7 @@ class RequiredIf(DataRequired):
                             self.other_field_name)
         if bool(other_field.data):
             super(RequiredIf, self).__call__(form, field)
-            
+
 
 def listas_enteros(form, field):
     messege = 'Introduce solo numeros enteros.'
@@ -59,20 +66,42 @@ def lista_decimales(form, field):
 
 class FalloForm(FlaskForm):
     nodos_fallo = StringField("Nodos que quieres que fallen", [
-                                listas_enteros,
-                                RequiredIf('tiempo_fallo'),
-                                RequiredIf('tiempo_recuperacion')
-                                ])
+        listas_enteros,
+        RequiredIf('tiempo_fallo'),
+        RequiredIf('tiempo_recuperacion')
+    ])
     tiempo_fallo = StringField("Tiempo a cual falla", [
-                               lista_decimales, 
-                               RequiredIf('nodos_fallo'),
-                               RequiredIf('tiempo_recuperacion')
-                               ])
+        lista_decimales,
+        RequiredIf('nodos_fallo'),
+        RequiredIf('tiempo_recuperacion')
+    ])
     tiempo_recuperacion = StringField("Tiempo que pasa despues del fallo para recuperarse.", [
-                            lista_decimales,
-                            RequiredIf('nodos_fallo'),
-                            RequiredIf('tiempo_fallo')
-                            ])
+        lista_decimales,
+        RequiredIf('nodos_fallo'),
+        RequiredIf('tiempo_fallo')
+    ])
+    nodo_selecionado_1 = IntegerField("Id nodo elegido por oraculo (Copy=0)", [
+        RequiredIf('nodo_selecionado_2'),
+        RequiredIf('nodo_selecionado_3'),
+        NumberRange(Config.NODO_SERVER_LOWER, Config.NODO_SERVER_UPPER,
+                    f"Debe estar entre {Config.NODO_SERVER_LOWER} y {Config.NODO_SERVER_UPPER}"),
+        Optional()
+        ])
+    nodo_selecionado_2 = IntegerField("Id nodo elegido por oraculo (Copy=1)", [
+        RequiredIf('nodo_selecionado_1'),
+        RequiredIf('nodo_selecionado_3'),
+        NumberRange(Config.NODO_SERVER_LOWER, Config.NODO_SERVER_UPPER,
+                    f"Debe estar entre {Config.NODO_SERVER_LOWER} y {Config.NODO_SERVER_UPPER}"),
+        Optional()
+        ])
+    nodo_selecionado_3 = IntegerField("Id nodo elegido por oraculo (Copy>2)", [
+        RequiredIf('nodo_selecionado_1'),
+        RequiredIf('nodo_selecionado_2'),
+        NumberRange(Config.NODO_SERVER_LOWER, Config.NODO_SERVER_UPPER,
+                    f"Debe estar entre {Config.NODO_SERVER_LOWER} y {Config.NODO_SERVER_UPPER}"),
+        Optional()
+        ])
+
     # topologia = FileField("Dame la topologia", [Optional()])
     limpiar = BooleanField("Clear", default=True, false_values=(False, 'false', 0, '0'))
     submit = SubmitField('Enviar')
