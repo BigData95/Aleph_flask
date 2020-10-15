@@ -3,6 +3,8 @@
 
 [![Deep Source](https://static.deepsource.io/deepsource-badge-light.svg)](https://deepsource.io/gh/BigData95/Aleph_flask/)
 
+[![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://aleph-simulator.herokuapp.com/)
+
 
 
 It's a web app created with Flask, it allow you to:
