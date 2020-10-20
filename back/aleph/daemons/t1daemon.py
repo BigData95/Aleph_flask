@@ -56,7 +56,6 @@ class T1Daemon(Daemon):
                        "t1daemon"
                        )  # TODO: Agregar la variable del timer
 
-    # Cambiar por expiringTimer()
     def timer(self, nodo_info, event):
         """Utiliza nodo_info para obtener la informacion del nodo donde vive, como el id y el clock """
         add_result(nodo_info, event.parametros['id_copy'],
@@ -106,7 +105,7 @@ class T1Daemon(Daemon):
         Cuando llega una confirmacion del nodo a quien se le mando el trabajo, manda el report con SUCESS \n
         No le importa el estado del timer. Pero con self.results le avisa al timer
         """
-        print(f"Se confirma la opercion del t1Daemon {self.daemon_id} {event.operacion}")
+        print(f"{nodo_info.clock} Se confirma la opercion del t1Daemon {self.daemon_id} {event.operacion} {event.source} {event.source_element}")
         index_operacion = event.parametros["id_operacion"]
         self.results[index_operacion] = True
 
@@ -134,7 +133,3 @@ class T1Daemon(Daemon):
     def restore(self, memento: Memento):
         self._state = memento.get_state()
         # todo: Igualar todos las propiedades necesarias
-
-    # def clean(self):
-    #     self.__prioridad = None
-    #     self.__operacion = None

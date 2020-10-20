@@ -50,7 +50,7 @@ class Config:
 
 
     #Timer para daemons
-    DAEMON_TIMER = 4
+    DAEMON_TIMER = 6
 
     # Tamano de la UMA
     UMA = 5

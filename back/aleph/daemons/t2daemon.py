@@ -30,7 +30,8 @@ class T2Daemon(Daemon):
             self.results.append(False)
             parametros['id_clone'] = uuid.uuid4()
             self.clones_pendientes.append(parametros['id_clone'])
-            add_result(nodo_info, event.parametros['id_copy'], f"ID: {self.daemon_id} Creo clon {parametros['id_clone']}", "t2daemon")
+            add_result(nodo_info, event.parametros['id_copy'], f"ID: {self.daemon_id} Creo clon y confirmo la "
+                                                               f"operacion. {parametros['id_clone']}", "t2daemon")
             insert(nodo_info,
                    "T3DaemonID",
                    nodo_info.id,

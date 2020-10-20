@@ -10,6 +10,7 @@
 It's a web app created with Flask, it allow you to:
   - Simulate failures with recovery on any node at a given time.
   - Watch the trace of the diferente internal components
+  - Choose the nodes selected by the Oracle. 
   
 And if you use it localy it allow you to change:
   - The network topology

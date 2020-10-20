@@ -1,6 +1,6 @@
 version = 1
 
-exclude_patterns = ["/Back/simulador/*"]
+exclude_patterns = ["/back/simulador/*"]
 
 [[analyzers]]
 name = "python"

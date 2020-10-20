@@ -84,8 +84,8 @@ class Buffer:
     def confirm(self, nodo_info, event):
         add_result(nodo_info, event.parametros['id_copy'], "##Buffer##", "buffer")
         if event.source_element == 't2daemon':
-            add_result(nodo_info, event.parametros['id_copy'], f"Llego resultado de alguna dispersion de {event.parametros['id_file']}", "buffer")
-
+            add_result(nodo_info, event.parametros['id_copy'], f"Llego resultado de alguna dispersion de "
+                                                               f"{event.parametros['id_file']}", "buffer")
             # Busco si el id_file esta en los files que estamos esperando.
             index = next((i for i, files in enumerate(self.files_dispersando)
                           if files['id_file'] == event.parametros['id_file']), None)
@@ -96,6 +96,16 @@ class Buffer:
                     # Ya se almacenaron todos los dispersos
                     add_result(nodo_info, event.parametros['id_copy'],
                                f"Todos los dispersos de {event.parametros['id_file']} estan almacenados", "buffer")
+                    if "source_daemon" in event.parametros:
+                        add_result(nodo_info, event.parametros['id_copy'],"Se manda confirmacion al daemon")
+                        confirmStorage(nodo_info,
+                                    "Procesamiento",
+                                    event.parametros["source_daemon"],
+                                    "t1daemon",
+                                    event.parametros,
+                                    nodo_info.id,  # Nodo objetivo, soy yo mismo
+                                    event.parametros["confirmacion_daemon"]
+                                    )  # Lo regreso a quien me lo mando
                     # Deberia de poder matar al clone pero no sabe en que nodo esta programado. Es el nodo que tiene NumCopy=1
                     self.files_dispersando.pop(index)
                     # TODO: deberia de hacer insert a t1daemon, ver instruccion 13 eb Storage Process, second phase
@@ -116,16 +126,12 @@ class Buffer:
         lista_indexes = []
         for index, operacion in enumerate(self.operaciones_despachadas):
             if operacion.get('id_file', None) == event.parametros['id_file']:
-                print(f"Encontre un index perro {index}")
                 lista_indexes.append(index)
         # Encontro index de la operaciones (Las listas vacias es un valor falsy)
         if lista_indexes:
-            print("Ya se despacho compa")
-            print(f"{lista_indexes} y {self.operaciones_despachadas}")
-            #Ya se habia despachado antes, pero cual id_copy?
+            # Ya se habia despachado antes, pero cual id_copy?
             for element in lista_indexes:
                 if self.operaciones_despachadas[element]['id_copy'] == event.parametros['id_copy']:
-                    print("Esta operacion ya se habia despachado antes")
                     add_result(nodo_info, event.parametros['id_copy'], "Esta operacion ya se habia despachado antes", "buffer")
                     ya_despachado = True
                     confirmStorage(nodo_info,
@@ -158,18 +164,22 @@ class Buffer:
             clone += 1
             add_result(nodo_info, event.parametros['id_copy'], f"Voy a dispersar a file:{event.parametros['id_file']}",
                        "buffer")
+            self.operaciones_despachadas.append({'id_file': event.parametros['id_file'], 'id_copy': event.parametros['id_copy']})
+            event.parametros["confirmacion_daemon"] = event.source_element_id
+            event.parametros["source_daemon"] = event.source
             self.process(nodo_info, event)
-            confirmStorage(nodo_info,
-                           "Procesamiento",
-                           event.source,
-                           "t1daemon",
-                           event.parametros,
-                           nodo_info.id,  # Nodo objetivo, soy yo mismo
-                           event.source_element_id
-                           )  # Lo regreso a quien me lo mando
+            # confirmStorage(nodo_info,
+            #                "Procesamiento",
+            #                event.source,
+            #                "t1daemon",
+            #                event.parametros,
+            #                nodo_info.id,  # Nodo objetivo, soy yo mismo
+            #                event.source_element_id
+            #                )  # Lo regreso a quien me lo mando
 
         elif (event.parametros["id_copy"] > 1 or clone >= 2) and not ya_despachado:
             # Creamos clon
+            self.operaciones_despachadas.append({'id_file': event.parametros['id_file'], 'id_copy': event.parametros['id_copy']})
             parametros = copy.copy(event.parametros)
             parametros['new_id_copy'] = 1
             # Porque si no se elimina, lo tomaria como si ya lo hubiera iniciado un t1Daemmon, dentro de si mismo.
@@ -208,7 +218,9 @@ class Buffer:
         Solo se almacena. Se trata de algun disperso procesado por t2Daemon
         """
         add_result(nodo_info, event.parametros['id_copy'],
-                   f"Llego {event.operacion} de t2DaemonID:{event.source_element_id}, para {event.parametros['id_file']} Mando confirmacion", "buffer")
+                   f"Llego {event.operacion} de t2DaemonID:{event.source_element_id}, para "
+                   f"{event.parametros['id_file']} Mando confirmacion", "buffer")
+
         confirmStorage(nodo_info, event.name, event.source, "t2daemon",
                        event.parametros, daemon_id=event.source_element_id)
 

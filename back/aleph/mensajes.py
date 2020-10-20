@@ -128,7 +128,7 @@ def mensaje(self,
             mensaje(self,name,target,source,parametros,nodo_objetivo=2,operacion="STORE") es incorrecto.
     """
     newevent = Mensaje(name,
-                       self.clock + 1.0,
+                       self.clock + Config.TIME,
                        target,
                        source,
                        parametros,
@@ -334,7 +334,6 @@ def store(self, parametros, target, extras=None):
                 )
 
 
-# TODO:Tiene que ser para todos los daemons, no solo t1daemon
 def mensajeDaemon(self, name, daemon_id, tipo_operacion, tipo_daemon, id_copy):
     mensaje(self,
             name,
@@ -348,7 +347,6 @@ def mensajeDaemon(self, name, daemon_id, tipo_operacion, tipo_daemon, id_copy):
             )
 
 
-# TODO: Esta escrtio para t1Daemon, quiza se deba tomar en cuenta los demas
 def report(self, result, daemon_id, parameters, nodo_objetivo, prioridad=None, operacion=None, ):
     mensaje(self,
             result,
@@ -364,11 +362,10 @@ def report(self, result, daemon_id, parameters, nodo_objetivo, prioridad=None, o
             )
 
 
-# ConfirmStorage siempre regresa sucess
 def confirmStorage(self, operacion, destino, destino_interno, parametros=None, nodo_objetivo=None, daemon_id=None,
                    remitente_interno=None, remitente_interno_id=None):
     # ConfirmStorage siempre tiene resultado sucess, menos cuando va del buffer al proxy
-    # y cuando va desl Proxy al cliente, pues te da el resultado, hace un nuevo metodo
+    # y cuando va desde el Proxy al cliente te da el resultado, hace un nuevo metodo
     mensaje(self,
             "CONFIRM",
             destino,  # id del nodo

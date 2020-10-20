@@ -101,7 +101,7 @@ class Aleph(Model):
             self.caretakers_t3daemon.append(Caretaker(self.t3_daemons[daemon_id]))
 
         self.caretakers_buffer = []
-        for daemon_id in range(len(self.buffer)):
+        for buffer_id in range(len(self.buffer)):
             self.caretakers_buffer.append(Caretaker(self.buffer[buffer_id]))
 
         self.snapshot = None
@@ -192,7 +192,6 @@ def save_state(self):
     # Para los elementos propios no se usa el patron memento
 
 
-
 def restore_state(self) -> None:
     """
     Como solamente cada objeto tiene acceso a su memento y su propio estado,
@@ -237,7 +236,6 @@ def buffer_do(self, event):
     if event.source_element == "proxy":
         if event.name == "STORE":
             self.buffer[0].store_from_proxy(self, event)
-    # TODO: QUIZA SE PUEDE GENERALIZAR REPORT PARA TODOS LOS TIPOS DE DEMONIOS
     if event.source_element == "t1daemon":
         if event.name == "SUCESS" or event.name == "FAILURE":
             self.buffer[0].report_from_t1daemon(self, event)
@@ -250,7 +248,6 @@ def buffer_do(self, event):
         if event.name == "TASK":
             if event.operacion == "STORE_DISPERSO":
                 self.buffer[0].store_from_t2daemon(self, event)
-
         if event.name == "CONFIRM":
             self.buffer[0].confirm(self, event)
 
@@ -266,7 +263,7 @@ def qManager_do(self, event):  # QManager
             self.qManager.store(self, event, 1)
 
         if event.operacion == "RETRIEVE":
-            #"Ver diagrama Retrieeval process, first phase")
+            # "Ver diagrama Retrieeval process, first phase")
             self.qManager.retrieve_t1daemon()
 
         if event.operacion == "PROCESS":
@@ -277,9 +274,9 @@ def qManager_do(self, event):  # QManager
             print("Ver diagrama Storage process, second phase")
 
     if event.name == "T2DaemonID":
-        if event.operacion == "STORE": 
+        if event.operacion == "STORE":
             self.qManager.store(self, event, 2)
-            #"Ver diagrama Storage process, second phase")
+            # "Ver diagrama Storage process, second phase")
 
     if event.name == "T3DaemonID":
         if event.operacion == "STORE":

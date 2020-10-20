@@ -7,6 +7,8 @@ from .simulator import Simulator
 # ----------------------------------------------------------------------------------------
 
 import re  # <-- Libreria
+
+
 class Simulation:
     """ Atributos: "engine", "graph", "table", contiene tambien un
     constructor y los metodos "setModel()", "init()", "run()" """
@@ -25,15 +27,15 @@ class Simulation:
         for line in lines:
             fields = line.split()
             neighbors = []
-            if not lineas_vacias.match(line): #<-- Revisa si la linea comienza con el salto de linea
-                self.__numero_nodos += 1   # <-- Aumenta contador
+            if not lineas_vacias.match(line):  # <-- Revisa si la linea comienza con el salto de linea
+                self.__numero_nodos += 1  # <-- Aumenta contador
                 for f in fields:
                     neighbors.append(int(f))
                 self.graph.append(neighbors)
 
-        self.table = [[]]          # la entrada 0 se deja vacia
+        self.table = [[]]  # la entrada 0 se deja vacia
         for i, row in enumerate(self.graph):
-            newprocess = Process(row, self.engine, i+1)
+            newprocess = Process(row, self.engine, i + 1)
             self.table.append(newprocess)
 
     def setModel(self, model, id, port=0):
@@ -49,15 +51,14 @@ class Simulation:
         """ arranca el motor de simulacion """
         while self.engine.isOn():
             nextevent = self.engine.returnEvent()
-            target = nextevent.target   # <-- Antes nextevent.getTarget()
+            target = nextevent.target  # <-- Antes nextevent.getTarget()
             time = nextevent.time
             port = nextevent.port
             nextprocess = self.table[target]
             nextprocess.setTime(time, port)
             nextprocess.receive(nextevent, port)
 
-
     # <-- Aceder a property
     @property
-    def numero_nodos(self): 
+    def numero_nodos(self):
         return self.__numero_nodos
