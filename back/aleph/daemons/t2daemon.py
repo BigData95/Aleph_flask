@@ -17,8 +17,8 @@ class T2Daemon(Daemon):
         self.id_operacion = 0
 
     def execute(self, nodo_info, event):
-        add_result(nodo_info, event.parametros['id_copy'],
-                   f'Execute desde T2Daemon {event.target_element_id}', "t2daemon")
+        # add_result(nodo_info, event.parametros['id_copy'],
+        #            f'Execute desde T2Daemon {event.target_element_id}', "t2daemon")
         self.status = "BUSY"
         # invokeOracle() le regresa el estado del nodo segun el HBManager, aqui supondremos que siempre lo manda
         parametros = copy.copy(event.parametros)
@@ -73,7 +73,7 @@ class T2Daemon(Daemon):
             add_result(nodo_info, event.parametros['id_copy'], f"ID:{self.daemon_id} No se hace insert, ya se habia "
                                                                f"eliminado el clon", "t2daemon")
             # Ya se habia eliminado el clon segun t2daemon pero el t3daemon no sabia
-            kill_clone(nodo_info, parametros, "t2daemon", self.daemon_id)
+            kill_clone(nodo_info, nodo_info.id,  parametros, "t2daemon", self.daemon_id)
             self.status = "FREE"
             mensajeDaemon(nodo_info, "FREE", self.daemon_id, "t2daemon", "2", event.parametros['id_copy'])
 
@@ -113,7 +113,7 @@ class T2Daemon(Daemon):
                        "t2daemon")
             self.results[event.parametros['id_operacion_t2daemon']] = True
             parametros = {'id_clone': event.parametros['id_clone'], 'id_copy': event.parametros['id_copy']}
-            kill_clone(nodo_info, parametros, "t2daemon", self.daemon_id)
+            kill_clone(nodo_info, nodo_info.id,  parametros, "t2daemon", self.daemon_id)
             try:
                 self.clones_pendientes.remove(event.parametros['id_clone'])
             except ValueError:

@@ -14,8 +14,8 @@ class Globals:
     ]
 
 
-def add_result(self: object, id_copy: object, contenido: str, color: str = "all"):
-    Globals.resultado_ids[id_copy][0].append(f'[{self.clock}|{self.id}]: {contenido}')
+def add_result(self, id_copy: int, contenido: str, color: str = "all"):
+    Globals.resultado_ids[id_copy][0].append(f'[Time: {self.clock} | Id: {self.id}]: {contenido}')
     Globals.resultado_ids[id_copy][1].append(color)
     # print(f'[{self.clock}]: {contenido}')
 
@@ -23,7 +23,7 @@ def add_result(self: object, id_copy: object, contenido: str, color: str = "all"
 def add_all(self, contenido, color="all"):
     for elemento in range(len(Globals.resultado_ids)):
         Globals.resultado_ids[elemento][0].append(
-            f'[{self.clock}|{self.id}]:[ALL]: {contenido}'
+            f'[Time: {self.clock} | Id: {self.id}]:[ALL]: {contenido}'
         )
         Globals.resultado_ids[elemento][1].append(color)
     # print(f'[{self.clock}]: {contenido}')

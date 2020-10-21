@@ -219,6 +219,7 @@ def cliente_do(self, event):
         accion = 1
         if accion == 1:
             self.cliente.store(self, event)
+
     if event.name == "CONFIRM":
         self.cliente.confirm(self, event)
 
@@ -228,14 +229,17 @@ def proxy_do(self, event):
         self.proxy.store(self, event)
     if event.name == "CONFIRM":
         self.proxy.confirm(self, event)
-
-    'To ask: Proxy or elsewhere,como lo decidimos '
+    if event.name == "INFO":
+        self.proxy.info(self, event)
+    if event.name == "MATAR_CLON":
+        self.proxy.matar_clon(self, event)
 
 
 def buffer_do(self, event):
     if event.source_element == "proxy":
         if event.name == "STORE":
             self.buffer[0].store_from_proxy(self, event)
+
     if event.source_element == "t1daemon":
         if event.name == "SUCESS" or event.name == "FAILURE":
             self.buffer[0].report_from_t1daemon(self, event)
@@ -244,6 +248,7 @@ def buffer_do(self, event):
                 self.buffer[0].store_from_t1daemon(self, event)
             elif event.operacion == "PROCESS":
                 self.buffer[0].process(self, event)
+
     if event.source_element == "t2daemon":
         if event.name == "TASK":
             if event.operacion == "STORE_DISPERSO":
@@ -261,15 +266,12 @@ def qManager_do(self, event):  # QManager
     if event.name == "T1DaemonID":
         if event.operacion == "STORE":
             self.qManager.store(self, event, 1)
-
         if event.operacion == "RETRIEVE":
-            # "Ver diagrama Retrieeval process, first phase")
+            # Ver diagrama Retrieeval process, first phase")
             self.qManager.retrieve_t1daemon()
-
         if event.operacion == "PROCESS":
-            ############Ver diagrama Storage process, last phase/second phase")
+            # Ver diagrama Storage process, last phase/second phase")
             self.qManager.store(self, event, 1)
-
         if event.operacion == "ELIMINATECOPY":
             print("Ver diagrama Storage process, second phase")
 
@@ -298,10 +300,8 @@ def t1_Daemon_do(self, event):
     # Ver: Que Manager & Type 1 Execution Daemon, with delayed answer
     if event.name == "EXECUTE":
         self.t1_daemons[event.target_element_id].execute(self, event)
-
     if event.name == "TIMER":
         self.t1_daemons[event.target_element_id].timer(self, event)
-
     if event.name == "CONFIRM":
         self.t1_daemons[event.target_element_id].confirm(self, event)
         pass

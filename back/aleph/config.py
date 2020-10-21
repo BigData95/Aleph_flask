@@ -46,10 +46,10 @@ class Config:
     NODO_SERVER_UPPER = 8
 
     # Timer para t3Daemon
-    CLONE_TIMER = 3
+    CLONE_TIMER = 5
 
 
-    #Timer para daemons
+    # Timer para daemons
     DAEMON_TIMER = 6
 
     # Tamano de la UMA

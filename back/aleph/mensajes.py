@@ -1,6 +1,8 @@
 from back.simulador.event import Event
 from back.aleph.config import Config
 
+from random import randint
+
 # from .salidas import add_result, add_all
 
 
@@ -98,7 +100,7 @@ class Mensaje(Event):
     @property
     def tiempo_recuperacion(self):
         return self.__tiempo_recuperacion
-    
+
     @property
     def extras(self):
         return self.__extras
@@ -190,7 +192,8 @@ def execute(self, target_nodo, source, operacion, parametros, prioridad, daemon_
 
 
 # Timer de t1Daemon y t2Daemon
-def startTimer(self, parametros, operacion, daemon_id, nodo_objetivo, prioridad, tipo_daemon, timer_value=Config.DAEMON_TIMER):
+def startTimer(self, parametros, operacion, daemon_id, nodo_objetivo, prioridad, tipo_daemon,
+               timer_value=Config.DAEMON_TIMER):
     # No confundir con el metodo "mensaje", en ese metodo no puedes manipular el tiempo en el que se manda.
     newEvent = Mensaje("TIMER",
                        self.clock + timer_value,
@@ -278,7 +281,7 @@ def insert(self,
         parametros['timer'] = timer
         parametros['charge_daemon'] = charge_daemon
         newevent = Mensaje(daemon,
-                           self.clock + timer,
+                           self.clock + Config.TIME,
                            target,
                            source,
                            parametros,
@@ -392,10 +395,10 @@ def confirmReport(self, resultado, destino, destino_interno, parametros=None, no
             )
 
 
-def kill_clone(self, clone_id, source_element, source_element_id):
+def kill_clone(self, target, clone_id, source_element, source_element_id):
     mensaje(self,
             "KILL",
-            self.id,
+            target,
             self.id,
             clone_id,  # Parametros incluyen id_clone e id_copy
             elemento_interno_objetivo='t3daemon',
@@ -404,13 +407,25 @@ def kill_clone(self, clone_id, source_element, source_element_id):
             elem_int_rem_id=source_element_id
             )
 
-# # Tiene un resultado: SUCESS or FAILURE
-# def reportResults(self, resultado, destino, destino_interno):
-#     print("Si se hace el report")
-#     mensaje(self,
-#             resultado,
-#             destino,
-#             self.id,
-#             None,
-#             elemento_interno_objetivo=destino_interno
-#             )
+
+def informacion_proxy(self, target, parametros, remitente_interno):
+    mensaje(self,
+            "INFO",
+            target,
+            self.id,
+            parametros,
+            elemento_interno_objetivo="proxy",
+            elemento_interno_remitente=remitente_interno
+            )
+
+
+def cancelar_clon(self, parametros):
+    target = randint(Config.NODO_PROXY_LOWER, Config.NODO_PROXY_UPPER)
+    mensaje(self,
+            "MATAR_CLON",
+            target,
+            self.id,
+            parametros,  # Solamente es el id_file, en forma de dict
+            elemento_interno_objetivo="proxy",
+            elemento_interno_remitente="buffer"
+            )

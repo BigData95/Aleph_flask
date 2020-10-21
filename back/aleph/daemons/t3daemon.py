@@ -55,6 +55,9 @@ class T3Daemon(Daemon):
                                                                f"ya se mato, no se hace insert", "t3daemon")
 
     def kill(self, nodo_info, event):
+        if event.source_element is "proxy":
+            add_result(nodo_info,event.parametros['id_copy'], f"El proxy {event.source} nos pide matar al clon {event.parametros['id_clone']}", "t3daemon")
+            print("OMG FUNCIONO")
         if event.parametros['id_clone'] in self.__clones:
             add_result(nodo_info, event.parametros['id_copy'],
                        f"Kill: LLega mensaje para eliminar clon {event.parametros['id_clone']}, lo eliminamos", "t3daemon")

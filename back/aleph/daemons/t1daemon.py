@@ -39,7 +39,8 @@ class T1Daemon(Daemon):
                 self.results.append('FALSE')
             # self.__timer_state = parametros['timer_state']
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"ID:{self.daemon_id} Mando operacion:{event.operacion} a nodo objetivo:{event.nodo_objetivo} y programo timer", "t1daemon")
+                       f"ID:{self.daemon_id} Mando operacion:{event.operacion} a nodo objetivo:{event.nodo_objetivo} y programo timer",
+                       "t1daemon")
             invokeTask(nodo_info,
                        event.nodo_objetivo,
                        event.operacion,
@@ -66,12 +67,15 @@ class T1Daemon(Daemon):
             """Ya llego la confirmacion de que la tarea se completo, el daemon queda libre y se tiene que limpiar
             los atributos para futuros usos distintos a storage
             """
-            add_result(nodo_info, event.parametros['id_copy'], f"ID:{self.daemon_id} Ya habia llegado el resultado, se ignora el timer.",
+            add_result(nodo_info, event.parametros['id_copy'],
+                       f"ID:{self.daemon_id} Ya habia llegado el resultado, se ignora el timer.",
                        "t1daemon")
         else:
             if parametros['timer_state'] < Config.T1_TIMER_STATE:
                 parametros["timer_state"] += 1
-                add_result(nodo_info, parametros['id_copy'], f"Intento de nuevo, pues no recibi respuesta de nodo objetivo:{event.nodo_objetivo}", "t1daemon")
+                add_result(nodo_info, parametros['id_copy'],
+                           f"Intento de nuevo, pues no recibi respuesta de nodo objetivo:{event.nodo_objetivo}",
+                           "t1daemon")
                 insert(nodo_info,
                        "T1DaemonID",
                        nodo_info.id,
@@ -99,30 +103,32 @@ class T1Daemon(Daemon):
         self.status = "FREE"
         mensajeDaemon(nodo_info, "FREE", self.daemon_id, "t1daemon", "1", event.parametros['id_copy'])
 
-
     def confirm(self, nodo_info, event):
         """
         Cuando llega una confirmacion del nodo a quien se le mando el trabajo, manda el report con SUCESS \n
         No le importa el estado del timer. Pero con self.results le avisa al timer
         """
-        print(f"{nodo_info.clock} Se confirma la opercion del t1Daemon {self.daemon_id} {event.operacion} {event.source} {event.source_element}")
         index_operacion = event.parametros["id_operacion"]
         self.results[index_operacion] = True
 
         if event.operacion == "Creacion Clon":
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"ID:{self.daemon_id} Confirmacion. Nodo {event.source},creo clon. No reporto a Proxy", "t1daemon")
+                       f"ID:{self.daemon_id} Confirmacion. Nodo {event.source},creo clon. No reporto a Proxy",
+                       "t1daemon")
         elif event.operacion == "Ya despachado":
             add_result(nodo_info, event.parametros['id_copy'], f"ID:{self.daemon_id}. "
-                       f"Confirmacion. Nodo {event.source} ya habia procesado la operacion", "t1daemon")
+                                                               f"Confirmacion. Nodo {event.source} ya habia procesado la operacion",
+                       "t1daemon")
         elif event.operacion == "Procesamiento":
             add_result(nodo_info, event.parametros['id_copy'], f"ID:{self.daemon_id}"
-                        f"Confirmacion. Nodo {event.source} proceso el archivo {event.parametros['id_file']}", "t1daemon")
+                                                               f"Confirmacion. Nodo {event.source} proceso el archivo {event.parametros['id_file']}",
+                       "t1daemon")
         else:
             add_result(nodo_info, event.parametros['id_copy'],
                        f"ID:{self.daemon_id}. Confirmacion. Nodo:{event.source}, "
                        f"Mando report", "t1daemon")
-            report(nodo_info, "SUCESS", self.daemon_id, event.parametros, event.nodo_objetivo, operacion=event.operacion)
+            report(nodo_info, "SUCESS", self.daemon_id, event.parametros, event.nodo_objetivo,
+                   operacion=event.operacion)
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
