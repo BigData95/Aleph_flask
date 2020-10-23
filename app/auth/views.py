@@ -4,7 +4,7 @@ from . import aleph
 from app.forms import FalloForm
 
 from back.aleph import salidas, Aleph_main as Aleph
-
+from back.aleph.config import Config
 
 @aleph.route('/simulador', methods=['GET', 'POST'])
 def simulador():
@@ -25,10 +25,19 @@ def simulador():
             resultados = salidas.clear()
             # return  redirect(url_for('auth.inicio'))
         print(fallo_form.limpiar.data)
+        
+    instrucciones = {
+        'id_cliente': Config.NODO_CLIENTE,
+        'id_proxy_lower': Config.NODO_PROXY_LOWER,
+        'id_proxy_upper': Config.NODO_PROXY_UPPER,
+        'id_server_lower': Config.NODO_SERVER_LOWER,
+        'id_server_upper': Config.NODO_SERVER_UPPER
+        }
 
     contexto = {
         'fallo_form': fallo_form,
         'resultados': resultados,
+        'instrucciones': instrucciones
     }
     return render_template('aleph_storage.html', **contexto)
 

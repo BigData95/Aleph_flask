@@ -41,9 +41,9 @@ class Config:
     # Si los nodos que son proxies son: 2,3,4
     NODO_PROXY_LOWER = 2
     NODO_PROXY_UPPER = 4
-    # Si los nodos que son servers son: 5,6,7,8
+    # Si los nodos que son servers son: 5,6,7,8,9
     NODO_SERVER_LOWER = 5
-    NODO_SERVER_UPPER = 8
+    NODO_SERVER_UPPER = 9
 
     # Timer para t3Daemon
     CLONE_TIMER = 5

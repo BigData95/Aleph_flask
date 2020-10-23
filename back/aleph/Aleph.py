@@ -17,32 +17,32 @@ from back.simulador import Model
 
 # Martinez Vargas Edgar Ivan
 # 2153043702
-""" 
-    aleph 
-Sobre topo.txt:
-    El nodo 1 se considera como el nodo que hace las peticiones de serivicio (ClientApp).
-    Los nodos 2,3,4 se consideran proxies, estan conectados entre si, con el cliente y con el resto de los nodos.
-    Los nodos 5,6,7,8 se consideran nodos donde se almacena la informacion. Estos no tienen comunicacion con el nodo 1.
-    IMPORTANTE!
-    Se puede cambiar esta configuracion en salidas.py en la clase Config modificando las constantes:
-        NODO_PROXY_LOWER 
-        NODO_PROXY_UPPER 
-        NODO_SERVER_LOWER 
-        NODO_SERVER_UPPER 
+ 
+#     aleph 
+# Sobre topo.txt:
+#     El nodo 1 se considera como el nodo que hace las peticiones de serivicio (ClientApp).
+#     Los nodos 2,3,4 se consideran proxies, estan conectados entre si, con el cliente y con el resto de los nodos.
+#     Los nodos 5,6,7,8,9 se consideran nodos donde se almacena la informacion. Estos no tienen comunicacion con el nodo 1.
+#     IMPORTANTE!
+#     Se puede cambiar esta configuracion en salidas.py en la clase Config modificando las constantes:
+#         NODO_PROXY_LOWER 
+#         NODO_PROXY_UPPER 
+#         NODO_SERVER_LOWER 
+#         NODO_SERVER_UPPER 
 
 
-Sobre la nomenclatura:
-   Los nombres de los metodos que se usan para mandar mensajes, son herencia directa de los diagramas de secuencia, 
-   con el fin de facilitar la lectura del codigo y el entendimiento del sistema/codigo.
-   Los nombres y el orden de los parametros tambien son herencia de los diagramas, en medida de lo posible.
-   
-Sobre los nodos: 
-    Cada nodo tiene distintos componentes internos : buffer, t1daemon, t2daemon, t3daemon. 
-    Para facilitar el uso, todos los nodos tambien tiene componenetes que se manejan como internos pero que realmente 
-    no lo son: cliente y proxy.
-    Por lo tanto, todos los nodos tiene por lo menos un componente: cliente, proxy, buffer, t1daemon, t2daemon, t3daemon.
-    Aunque algunos de estos componentes no se usan. Por ejemplo el nodo 1, es el unico nodo que usara el componente cliente.
-   """
+# Sobre la nomenclatura:
+#    Los nombres de los metodos que se usan para mandar mensajes, son herencia directa de los diagramas de secuencia, 
+#    con el fin de facilitar la lectura del codigo y el entendimiento del sistema/codigo.
+#    Los nombres y el orden de los parametros tambien son herencia de los diagramas, en medida de lo posible.
+
+# Sobre los nodos: 
+#     Cada nodo tiene distintos componentes internos : buffer, t1daemon, t2daemon, t3daemon. 
+#     Para facilitar el uso, todos los nodos tambien tiene componenetes que se manejan como internos pero que realmente 
+#     no lo son: cliente y proxy.
+#     Por lo tanto, todos los nodos tiene por lo menos un componente: cliente, proxy, buffer, t1daemon, t2daemon, t3daemon.
+#     Aunque algunos de estos componentes no se usan. Por ejemplo el nodo 1, es el unico nodo que usara el componente cliente.
+
 
 
 class Aleph(Model):
@@ -113,10 +113,8 @@ class Aleph(Model):
         """
 
         if event.name == "AVISO_FALLO":
-            """
-            Al inicio del algoritmo se manda un mensaje a los nodos que van a fallar con la informacion necesaria para 
-            simular su fallo.
-            """
+            # Al inicio del algoritmo se manda un mensaje a los nodos que van a fallar con la informacion necesaria para 
+            # simular su fallo.
             if self.id in event.lista_fallo:
                 # Un nodo puede fallar mas de una vez, se busca en la lista.
                 indexes = [i for i, x in enumerate(event.lista_fallo) if x == self.id]

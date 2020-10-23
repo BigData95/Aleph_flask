@@ -136,7 +136,6 @@ class Buffer:
                    f'T1DaemonID: {event.source_element_id} del nodo {event.source} id_file:{event.parametros["id_file"]}',
                    "buffer")
         ya_despachado = False
-        # Ya fue despachado anteriormente alguna operacion relacionado al id_file que viene en los parametros?
         lista_indexes = []
         for index, operacion in enumerate(self.operaciones_despachadas):
             if operacion.get('id_file', None) == event.parametros['id_file']:

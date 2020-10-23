@@ -1,0 +1,55 @@
+<style>
+    #div-mostrar {
+        width: 100%;
+        margin: auto;
+        height: 0px;
+        background:linear-gradient(90deg, #5D6D7E ,#85929E );
+        box-shadow: 10px 10px 3px #D8D8D8;
+        transition: height .4s;
+        color: white;
+        text-align: center;
+    }
+
+</style>
+
+<div class="d-flex justify-content-center">
+    <button type="button" class="btn btn-info" onclick="divAuto()">
+        Instrucciones
+    </button>
+</div>
+<div id="div-mostrar">
+    Los datos que se ingresan en los primeros tres campos pueden estar separados por 
+    un espacio simple, una coma(,) o un gui&oacute;n(-).<br> 
+    El checkbox "clear" permite limpiar las tablas entre ejecuciones, de otra manera se mostrar&aacute;n una tras otra.<br>
+    ID Nodo cliente: {{ instrucciones['id_cliente'] }}<br>
+    ID's nodos de proxies: 
+        {% for id in range(instrucciones['id_proxy_lower'], instrucciones['id_proxy_upper']+1) %}
+            {% if id == instrucciones['id_proxy_upper'] %}
+                {{id}}
+            {% else %}
+                {{id}},
+            {% endif%}
+        {% endfor%}
+        <br>
+    ID's nodos de almacenamiento:
+        {% for id in range(instrucciones['id_server_lower'], instrucciones['id_server_upper']+1) %}
+            {% if id == instrucciones['id_server_upper'] %}
+                {{id}}
+            {% else %}
+                {{id}},
+            {% endif%}
+        {% endfor%}
+        <br><br>
+</div>
+<script>
+    var clic = 1;
+    function divAuto() {
+        if (clic == 1) {
+            document.getElementById("div-mostrar").style.height = "130px";
+            clic = clic + 1;
+        } else {
+            document.getElementById("div-mostrar").style.height = "0px";
+            clic = 1;
+        }
+    }
+</script>

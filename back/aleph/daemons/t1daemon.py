@@ -64,9 +64,8 @@ class T1Daemon(Daemon):
         parametros = copy.copy(event.parametros)
         index_operacion = event.parametros["id_operacion"]
         if self.results[index_operacion] is True:
-            """Ya llego la confirmacion de que la tarea se completo, el daemon queda libre y se tiene que limpiar
-            los atributos para futuros usos distintos a storage
-            """
+            # Ya llego la confirmacion de que la tarea se completo, el daemon queda libre y se tiene que limpiar
+            # los atributos para futuros usos distintos a storage
             add_result(nodo_info, event.parametros['id_copy'],
                        f"ID:{self.daemon_id} Ya habia llegado el resultado, se ignora el timer.",
                        "t1daemon")

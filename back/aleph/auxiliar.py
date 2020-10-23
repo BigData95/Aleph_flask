@@ -9,10 +9,8 @@ from .salidas import add_result
 from .config import Config
 from back.simulador import Simulation
 
-"""
-Metodos necesarios para el algoritmo, pero que no aparecen en los diagramas o
-que se dedican a hacer otra clase de operaciones que se pueden generalizar.
-"""
+# Metodos necesarios para el algoritmo, pero que no aparecen en los diagramas o
+# que se dedican a hacer otra clase de operaciones que se pueden generalizar.
 
 
 def encargoDaemon(self, nodo_info, prioridad, id_daemon, id_copy):
@@ -109,18 +107,17 @@ def toList(lista, tipo):
     """Auxiliar: Convierte un String a una lista de enteros, \
     funciona si el string esta delimitado por: , - o un espacio  """
     respuesta = []
-    "Si se agregan delimitadores, cambiar la expresion regular en forms.py"
+    # Si se agregan delimitadores, cambiar la expresion regular en forms.py"
     delimitadores = " ", ",", "-"
     regex = '|'.join(map(re.escape, delimitadores))
     prelista = re.split(regex, lista)
-    # prelista = lista.split(',')
-    # nuevo = ""
     for elemento in prelista:
-        if tipo == "float":
+        if tipo == "float" and elemento != '':
             nuevo = float(elemento)
-        elif tipo == "int":
+            respuesta.append(nuevo)
+        elif tipo == "int" and elemento != '':
             nuevo = int(elemento)
-        respuesta.append(nuevo)
+            respuesta.append(nuevo)
     return respuesta
 
 
