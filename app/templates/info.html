@@ -1,6 +1,7 @@
 <style>
     #div-mostrar {
         width: 100%;
+        display: none;
         margin: auto;
         height: 0px;
         background:linear-gradient(90deg, #5D6D7E ,#85929E );
@@ -46,9 +47,11 @@
     function divAuto() {
         if (clic == 1) {
             document.getElementById("div-mostrar").style.height = "130px";
+            document.getElementById("div-mostrar").style.display = "block"
             clic = clic + 1;
         } else {
             document.getElementById("div-mostrar").style.height = "0px";
+            document.getElementById("div-mostrar").style.display= "none"
             clic = 1;
         }
     }
