@@ -8,18 +8,18 @@
 {%block stylesheet%}
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
     integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+
 {%endblock %}
 
 {% block head %}
 
 <title>
-    {% block title %}Aleph|{% endblock %}
+    {% block title %}Aleph{% endblock %}
 </title>
 
 {% endblock %}
 
-
-{% block body%}
+{% block nav %}
 <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-center">
     <div class="container">
         <a class="navbar-brand" href="{{ url_for('aleph.main')}}">
@@ -34,7 +34,8 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item active">
-                    <a class="nav-link" href="{{ url_for('aleph.main')}}">Home <span class="sr-only">(current)</span></a>
+                    <a class="nav-link" href="{{ url_for('aleph.main')}}">Home <span
+                            class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('aleph.simulador')}}">Simulador</a>
@@ -47,9 +48,11 @@
     </div>
 </nav>
 
+{% endblock %}
+
+
+{% block body%}
 
 {% block content %}{% endblock %}
-
-
 
 {% endblock %}

@@ -8,7 +8,6 @@ from back.aleph.memento import ConcreteMemento, Memento
 class Cliente:
     def __init__(self):
         self._state = None
-        pass
 
     @staticmethod
     def store(nodo_info, event):
@@ -16,7 +15,7 @@ class Cliente:
         # Los parametros vienen del cliente
         parametros = ["file", "file_name"]
         store(nodo_info, parametros, destino, event.extras)
-        add_all(nodo_info, f'Mando Store al Proxy:{destino}', "cliente")
+        add_all(nodo_info, f'Cliente: Mando Store al Proxy:{destino}', "cliente")
 
     def retrive(self):
         pass

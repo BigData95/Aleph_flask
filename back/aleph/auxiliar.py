@@ -113,14 +113,13 @@ def toList(lista, tipo):
     delimitadores = " ", ",", "-"
     regex = '|'.join(map(re.escape, delimitadores))
     prelista = re.split(regex, lista)
-    # prelista = lista.split(',')
-    # nuevo = ""
     for elemento in prelista:
-        if tipo == "float":
+        if tipo == "float" and elemento != '':
             nuevo = float(elemento)
-        elif tipo == "int":
+            respuesta.append(nuevo)
+        elif tipo == "int" and elemento != '':
             nuevo = int(elemento)
-        respuesta.append(nuevo)
+            respuesta.append(nuevo)
     return respuesta
 
 

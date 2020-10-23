@@ -2,14 +2,16 @@
 {% import 'macros.html' as macros%}
 
 
-
 {% block title %}
-{{ super() }}
-Bienvenido
+    {{ super() }}
+    ~Bienvenido
 {%endblock%}
 
 
 {% block content%}
+
+{% include 'info.html'%}
+
 
 <section class="min-vh-50">
     <div class="container">
@@ -18,16 +20,16 @@ Bienvenido
                 {{ fallo_form.hidden_tag() }}
                 {% for field in fallo_form 
                     if field.widget.input_type != 'hidden' %}
-                        <div class="form-group">
-                            {% if field.id != 'limpiar'%}
-                                {{ macros.render_field(field, class="form-control" ) }}
-                            {% else %}
-                                {{ macros.render_field(field)}}
-                            {% endif %}
-                            <p class="help-block text-danger"></p>
-                        </div>
+                <div class="form-group">
+                    {% if field.id != 'limpiar'%}
+                    {{ macros.render_field(field, class="form-control" ) }}
+                    {% else %}
+                    {{ macros.render_field(field)}}
+                    {% endif %}
+                    <p class="help-block text-danger"></p>
+                </div>
                 {% endfor%}
-                
+
             </form>
         </div>
     </div>
@@ -39,24 +41,24 @@ Bienvenido
         <div class="col">
             {% for elemento, color in salidas[0]|zip(salidas[1]) %}
                 {% if color == "cliente" %}
-                    <li class="list-group-item" style="color:#e80808">
-                {% elif color == "proxy" %}
-                    <li class="list-group-item" style="color:#1D7874">
-                {% elif color == "buffer" %}
-                    <li class="list-group-item" style="color:#00B2CA">
-                {% elif color == "qmanager" %}
-                    <li class="list-group-item" style="color:#F87575">
-                {% elif color == "t1daemon" %}
-                    <li class="list-group-item" style="color:#93032E">
-                {% elif color == "t2daemon" %}
-                    <li class="list-group-item" style="color:#735D78">
-                {% elif color == "t3daemon" %}
-                    <li class="list-group-item" style="color:green">
-                {% elif color == "all" %}
-                    <li class="list-group-item" style="color:black">
-                {% else %}
-                    <li class="list-group-item" style="color:black">
-                {% endif %}
+                <li class="list-group-item" style="color:#e80808">
+                    {% elif color == "proxy" %}
+                <li class="list-group-item" style="color:#1D7874">
+                    {% elif color == "buffer" %}
+                <li class="list-group-item" style="color:#00B2CA">
+                    {% elif color == "qmanager" %}
+                <li class="list-group-item" style="color:#F87575">
+                    {% elif color == "t1daemon" %}
+                <li class="list-group-item" style="color:#93032E">
+                    {% elif color == "t2daemon" %}
+                <li class="list-group-item" style="color:#735D78">
+                    {% elif color == "t3daemon" %}
+                <li class="list-group-item" style="color:green">
+                    {% elif color == "all" %}
+                <li class="list-group-item" style="color:black">
+                    {% else %}
+                <li class="list-group-item" style="color:black">
+                    {% endif %}
                     {{ elemento }}
                 </li>
             {% endfor %}

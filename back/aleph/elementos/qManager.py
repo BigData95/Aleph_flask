@@ -134,11 +134,11 @@ def iterar_daemon(self, nodo_info, queue: list, free_daemons: int, prioridad: st
                     # Revisa si hay mas libres aparte de el, cambia a false si no hay
                     check_daemons(self, nodo_info, 1)
                     break
-                else:  # No hay demonios disponibles
-                    self.status_daemons[0] = False
-                    add_result(nodo_info, id_copy, f'{free_daemons}', "qmanager")
-                    add_result(nodo_info, id_copy, "Ya no hay T1Daemons", "qmanager")
-                    continue
+                # else:  # No hay demonios disponibles
+                self.status_daemons[0] = False
+                add_result(nodo_info, id_copy, f'{free_daemons}', "qmanager")
+                add_result(nodo_info, id_copy, "Ya no hay T1Daemons", "qmanager")
+                continue
         elif tipo_daemon == 2 and 2 in free_daemons:
             if queue[iterador]['id_daemon_objetivo'] is not None:
                 # Quiere decir que el insert lo hizo un daemon hacia si mismo.
@@ -157,10 +157,9 @@ def iterar_daemon(self, nodo_info, queue: list, free_daemons: int, prioridad: st
                     nodo_info.t2_daemons[get_free_daemon].status = "BUSY"
                     check_daemons(self, nodo_info, 2)
                     break
-                else:
-                    self.status_daemons[1] = False
-                    add_result(nodo_info, id_copy, "Ya no hay T2Daemons", "qmanager")
-                    continue
+                self.status_daemons[1] = False
+                add_result(nodo_info, id_copy, "Ya no hay T2Daemons", "qmanager")
+                continue
         elif tipo_daemon == 3 and 3:
             # El demonio tipo 3 siempre esta disponible
             get_free_daemon = freeDaemon(nodo_info.t3_daemons)  # SOlo hay un demonio tipo 3

@@ -50,11 +50,10 @@ class Proxy:
 
     def info(self, nodo_info, event):
         self.update_despachados(event.parametros)
-        if event.source_element is "buffer":
+        if event.source_element == "buffer":
             for proxy in range(Config.NODO_PROXY_LOWER, Config.NODO_PROXY_UPPER + 1):
                 if proxy is not nodo_info.id:
                     informacion_proxy(nodo_info, proxy, event.parametros, "proxy")
-        print(f"Id {nodo_info.id} {self.despachados}")
 
     def update_despachados(self, parametros):
         for elemento in self.despachados:
@@ -79,13 +78,7 @@ class Proxy:
                                nodo_info.id)
                 except KeyError:
                     print("Esto no deberia pasar compa")
-                    print(event.parametros)
-                print(f"Mato algo {self.despachados}")
 
-
-
-    # def retrive():
-    #     pass
 
     def save(self) -> ConcreteMemento:
         # todo: Cuando se modifica el estado?
