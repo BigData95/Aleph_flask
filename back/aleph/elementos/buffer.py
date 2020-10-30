@@ -85,7 +85,7 @@ class Buffer:
         else:
             if event.name == "SUCESS":
                 add_result(nodo_info, event.parametros["id_copy"],
-                           f"LLego report de t1Daemon: SUCESS Operacion {event.operacion} exitosa", "buffer")
+                           f"LLego report de t1Daemon: SUCESS en operacion {event.operacion}", "buffer")
             else:  # event.parametros["reported"] > Config.MAX_FAILURES
                 add_result(nodo_info, event.parametros["id_copy"], f"Operacion {event.operacion} FAILURE", "buffer")
             event.parametros['resultado'] = "SUCESS"
@@ -282,7 +282,7 @@ class Buffer:
                 dispersos = self.disperse(fragmento)
                 dispersando = {'id_file': event.parametros['id_file'], 'dispersos_pendientes': len(dispersos)}
                 self.files_dispersando.append(dispersando)
-                add_result(nodo_info, event.parametros['id_copy'], f"Se van almancear {len(dispersos)} dispersos",
+                add_result(nodo_info, event.parametros['id_copy'], f"Se almacenaran {len(dispersos)} dispersos",
                            "buffer")
                 for disperso in range(len(dispersos)):
                     id_nodo = invokeOracle()
@@ -306,4 +306,4 @@ class Buffer:
 
     @staticmethod
     def disperse(fragmento):
-        return [fragmento / 2, fragmento / 2]
+        return [fragmento / 3, fragmento / 3, fragmento/3]

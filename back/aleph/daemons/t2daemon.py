@@ -109,7 +109,7 @@ class T2Daemon(Daemon):
                        f"ID:{self.daemon_id} Ya se habia confirmado esta la operacion {event.operacion}")
         else:
             add_result(nodo_info, event.parametros['id_copy'],
-                       f"ID:{self.daemon_id} LLega confirmacion de operacion. Tengo que mata al clon: {event.parametros['id_clone']}",
+                       f"ID:{self.daemon_id} LLega confirmacion de operacion. Tengo que matar al clon: {event.parametros['id_clone']}",
                        "t2daemon")
             self.results[event.parametros['id_operacion_t2daemon']] = True
             parametros = {'id_clone': event.parametros['id_clone'], 'id_copy': event.parametros['id_copy']}
