@@ -19,8 +19,6 @@ def inicia(lista_fallo=None, tiempo_fallo=None, tiempo_recuperacion=None, nodo_o
         m = Aleph()
         experiment.setModel(m, i)
 
-    # ! No es necesrio hacer los 3 ifs porque desde el GUI se valida.
-    # Si uno esta vacia todos lo estan, si una tiene cosas, las demas tambien.
     if lista_fallo.strip():
         lista_fallo = toList(lista_fallo, "int")
         print(f'Esta es la lista: {lista_fallo}')

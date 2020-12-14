@@ -12,11 +12,6 @@ class Memento(ABC):
     def get_date(self):
         pass
 
-    # @abstractmethod
-    # def get_state(self):
-    #     pass
-
-
 class ConcreteMemento(Memento):
     def __init__(self, state):
         self._state = state
@@ -25,11 +20,13 @@ class ConcreteMemento(Memento):
     def get_state(self):
         return self._state
 
-    def get_name(self):
-        return f'{self._date}'  # / {self._state[0:9]}'
-
     def get_date(self):
         return self._date
+
+    def get_name(self):
+        return f'{self._date}'
+
+
 
 
 class Caretaker:

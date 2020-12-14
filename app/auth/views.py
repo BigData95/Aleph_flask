@@ -41,7 +41,6 @@ def simulador():
     }
     return render_template('aleph_storage.html', **contexto)
 
-    # return render_template('aleph_storage.html', **contexto)
 
 
 

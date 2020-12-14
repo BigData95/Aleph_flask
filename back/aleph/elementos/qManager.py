@@ -38,14 +38,6 @@ class QManager:
         encolar(self, elementos, event.prioridad)
         add_result(nodo_info, event.parametros['id_copy'], f"Encola a deamon tipo:{tipo_daemon} Prioridad:{event.prioridad}", "qmanager")
 
-    def retrieve_t1daemon(self):
-        pass
-
-    def eliminate_copy(self):
-        pass
-
-    def free(self, nodo_info, daemon_id, tipo_daemon):
-        pass
 
     def daemon_do(self, nodo_info, id_copy=None):
         if True in self.status_daemons:
@@ -83,7 +75,6 @@ class QManager:
             add_all(nodo_info, "No hay demonios disponibles")
 
     def save(self) -> ConcreteMemento:
-        # todo: Cuando se modifica el estado?
         self._state = "state de qmanager"
         return ConcreteMemento({
             'queue_high': self.queue_high,
@@ -107,7 +98,6 @@ class QManager:
         self.cont_prioridad_baja = self._state['contador_prioridad_baja']
         self.politica = self._state['politica']
         self.status_daemons = self._state['status_daemons']
-        # todo: Igualar todos las propiedades necesarias
 
 
 def iterar_daemon(self, nodo_info, queue: list, free_daemons: int, prioridad: str, id_copy: int):

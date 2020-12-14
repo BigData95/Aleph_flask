@@ -6,7 +6,7 @@ from .process import Process
 from .simulator import Simulator
 # ----------------------------------------------------------------------------------------
 
-import re  # <-- Libreria
+# import re
 
 
 class Simulation:
@@ -14,51 +14,74 @@ class Simulation:
     constructor y los metodos "setModel()", "init()", "run()" """
 
     def __init__(self, filename, maxtime):
-        lineas_vacias = re.compile('\n')
         """ construye su motor de simulacion, la grafica de comunicaciones y
         la tabla de procesos """
-        self.__numero_nodos = 0  # <-- Contador
-
+        self.__numero_nodos = 0
         self.engine = Simulator(maxtime)
-        f = open(filename)
-        lines = f.readlines()
-        f.close()
-        self.graph = []
+        self._graph = []
+        self.table = [[]]
+
+        # lineas_vacias = re.compile('\n')
+
+        # f = open(filename)
+        # lines = f.readlines()
+        # f.close()
+        with open(filename, 'r') as topology:
+            lines = topology.readlines()
+
+        # contador = 0
         for line in lines:
-            fields = line.split()
-            neighbors = []
-            if not lineas_vacias.match(line):  # <-- Revisa si la linea comienza con el salto de linea
-                self.__numero_nodos += 1  # <-- Aumenta contador
-                for f in fields:
-                    neighbors.append(int(f))
-                self.graph.append(neighbors)
+            if line != '\n':
+                self.__numero_nodos += 1
+                fields = line.split()
+                neighbors = []
+                for field in fields:
+                    neighbors.append(int(field))
+                self._graph.append(neighbors)
+                newprocess = Process(
+                    neighbors, self.engine, self.__numero_nodos)
+                self.table.append(newprocess)
+                # self.setModel(algorithm, self.__numero_nodos)
 
-        self.table = [[]]  # la entrada 0 se deja vacia
-        for i, row in enumerate(self.graph):
-            newprocess = Process(row, self.engine, i + 1)
-            self.table.append(newprocess)
+        # for line in lines:
+        #     fields = line.split()
+        #     neighbors = []
+        #     if not lineas_vacias.match(line):
+        #         self.__numero_nodos += 1
+        #         for f in fields:
+        #             neighbors.append(int(f))
+        #         self._graph.append(neighbors)
 
-    def setModel(self, model, id, port=0):
+        # for i, row in enumerate(self._graph):
+        #     newprocess = Process(row, self.engine, i + 1)
+        #     self.table.append(newprocess)
+
+    def setModel(self, model, port=0):
         """ asocia al proceso con el modelo que debe ejecutar y viceversa """
-        process = self.table[id]
-        process.setModel(model, port)
+        for id in range(1, len(self.graph)+1):
+            process = self.table[id]
+            process.setModel(model, port)
 
-    def init(self, event):
+    def init(self, *events):
         """ inserta un evento semilla en la agenda """
-        self.engine.insertEvent(event)
+        for event in events:
+            self.engine.insertEvent(event)
 
     def run(self):
         """ arranca el motor de simulacion """
         while self.engine.isOn():
             nextevent = self.engine.returnEvent()
-            target = nextevent.target  # <-- Antes nextevent.getTarget()
+            target = nextevent.target
             time = nextevent.time
             port = nextevent.port
             nextprocess = self.table[target]
             nextprocess.setTime(time, port)
             nextprocess.receive(nextevent, port)
 
-    # <-- Aceder a property
+    @property
+    def graph(self):
+        return self._graph
+
     @property
     def numero_nodos(self):
         return self.__numero_nodos
