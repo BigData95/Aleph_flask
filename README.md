@@ -7,12 +7,12 @@
 
 
 
-It's a web app created with Flask, it allow you to:
+It's a web app created with Flask, it allows you to:
   - Simulate failures with recovery on any node at a given time.
-  - Watch the trace of the diferente internal components
+  - Watch the trace of the different internal components
   - Choose the nodes selected by the Oracle. 
   
-And if you use it localy it allow you to change:
+And if you use it locally it allows you to change:
   - The network topology
   - Internal timers for every operation. 
   - Roles of the nodes. 
@@ -23,7 +23,7 @@ And if you use it localy it allow you to change:
 
 Aleph simulator requires Python 3.x to run. 
 
-Clone the repo and create your virtual enviroment.
+Clone the repo and create your virtual environment.
 ```
 $ python3 -m venv .env 
 ```
